@@ -4,16 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#064e3b" />
-  <meta name="description" content="Cotizador Multiproducto e Historial Consolidado de Granos." />
+  <meta name="description" content="Cotizador Multiproducto, Historial y Gráfica de Precios de Granos." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Cotizador Granos" />
-  <title>Cotizador Multiproducto & Historial Consolidado</title>
+  <title>Cotizador Multiproducto, Historial & Gráfica</title>
 
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" type="image/png" href="./icon-512.png" />
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN para la Gráfica de Precios -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
     body {
@@ -58,7 +60,7 @@
     </div>
     <div class="flex items-center space-x-2">
       <button onclick="toggleHistoryModal()" class="text-xs bg-emerald-700/60 hover:bg-emerald-600 text-white border border-emerald-500/50 px-3 py-1.5 rounded-lg font-semibold flex items-center space-x-1 shadow transition-all">
-        <span>📜 Historial</span>
+        <span>📜 Historial & Gráfica</span>
       </button>
       <button onclick="resetAllDefaults()" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
         Restablecer
@@ -158,26 +160,27 @@
 
   </main>
 
-  <!-- MODAL DE HISTORIAL -->
+  <!-- MODAL DE HISTORIAL & GRÁFICA -->
   <div id="historyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
-    <div class="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-5xl max-h-[92vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
       
       <div class="bg-slate-950 p-4 border-b border-slate-800 flex justify-between items-center">
         <div>
           <h3 class="font-bold text-base md:text-lg text-emerald-400 flex items-center space-x-2">
-            <span>📜 Historial Consolidado de Cotizaciones</span>
+            <span>📜 Historial, Gráfica de Precios & Consolidación</span>
           </h3>
-          <p class="text-xs text-slate-400">Analiza tendencias e importa cotizaciones mediante enlaces o archivos.</p>
+          <p class="text-xs text-slate-400">Abre cotizaciones guardadas, analiza fluctuaciones de precio o importa datos recibidos.</p>
         </div>
         <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-white text-lg font-bold px-2 py-1">✕</button>
       </div>
 
-      <div class="p-4 overflow-y-auto space-y-4 flex-1">
+      <div class="p-4 overflow-y-auto space-y-5 flex-1">
         
+        <!-- BARRA DE FILTRO Y ACCIONES -->
         <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs">
           <div class="flex items-center space-x-2">
             <span class="text-slate-400">Filtrar Grano:</span>
-            <select id="filterHistoryProduct" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 text-white rounded-lg px-2 py-1">
+            <select id="filterHistoryProduct" onchange="renderHistoryModalContent()" class="bg-slate-900 border border-slate-700 text-white rounded-lg px-2 py-1 focus:outline-none focus:border-emerald-500">
               <option value="todos">Todos los productos</option>
               <option value="frijol">Frijol</option>
               <option value="arroz">Arroz</option>
@@ -198,6 +201,18 @@
           </div>
         </div>
 
+        <!-- SECCIÓN DE LA GRÁFICA DE FLUCTUACIÓN DE PRECIOS -->
+        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+          <div class="flex justify-between items-center">
+            <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">📈 Gráfica de Fluctuación de Precios</h4>
+            <span class="text-[10px] text-slate-400 font-mono">Comparativa de $/kg a través del tiempo</span>
+          </div>
+          <div class="relative w-full h-48 md:h-56">
+            <canvas id="priceTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- TABLA HISTÓRICA CON BOTÓN DE "CARGAR" -->
         <div class="overflow-x-auto rounded-xl border border-slate-800">
           <table class="w-full text-left text-xs font-mono">
             <thead class="bg-slate-950 text-slate-400 uppercase text-[10px]">
@@ -207,7 +222,7 @@
                 <th class="p-2.5">Proveedor / Productor</th>
                 <th class="p-2.5 text-right">M. Prima</th>
                 <th class="p-2.5 text-right">Costo Limpio (kg / bulto)</th>
-                <th class="p-2.5 text-center">Compartir / Borrar</th>
+                <th class="p-2.5 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody id="historyTableBody" class="divide-y divide-slate-800/70 bg-slate-900">
@@ -280,6 +295,7 @@
     let optionsData = [];
     let historyRecords = [];
     let currentProduct = 'frijol';
+    let priceChartInstance = null;
 
     function initApp() {
       const savedOptions = localStorage.getItem(STORAGE_KEY_MULTI);
@@ -291,7 +307,6 @@
       renderColumns();
       recalculate();
 
-      // DETECCIÓN AUTOMÁTICA DE LINK RECIBIDO (URL Query Parameter)
       checkUrlForImportedQuote();
     }
 
@@ -322,7 +337,6 @@
                 toggleHistoryModal();
               }
 
-              // Limpiar URL sin recargar la página
               window.history.replaceState({}, document.title, window.location.pathname);
             }, 500);
           }
@@ -591,7 +605,7 @@
       saveState();
     }
 
-    // HISTORIAL Y COMPARTIDO POR LINK
+    // HISTORIAL, ABRIR COTIZACIÓN Y GRÁFICA
     function saveToHistory(optIdx) {
       const opt = optionsData[optIdx];
       const record = {
@@ -602,6 +616,12 @@
         variety: opt.variety || 'General',
         provider: opt.provider || 'Sin Especificar',
         rawPrice: opt.rawPrice,
+        maquila: opt.maquila,
+        freight: opt.freight,
+        packBag: opt.packBag,
+        mermaPct: opt.mermaPct,
+        marginPct: opt.marginPct,
+        subproducts: opt.subproducts ? JSON.parse(JSON.stringify(opt.subproducts)) : [],
         costKg: opt.calculatedCostKg || 0,
         costBag: opt.calculatedCostBag || 0,
         priceKg: opt.calculatedPriceKg || 0,
@@ -610,17 +630,57 @@
 
       historyRecords.unshift(record);
       localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
-      alert(`Cotización guardada en Historial:\n${record.productType.toUpperCase()} (${record.variety}) - ${record.provider}\nCosto: $${record.costKg.toFixed(2)}/kg ($${record.costBag.toFixed(2)}/bulto)`);
+      alert(`Cotización guardada en Historial:\n${record.productType.toUpperCase()} (${record.variety}) - ${record.provider}\nCosto Limpio: $${record.costKg.toFixed(2)}/kg ($${record.costBag.toFixed(2)}/bulto)`);
+    }
+
+    function loadHistoryRecordIntoOption(encodedJson, targetOptIdx = 0) {
+      try {
+        const rec = JSON.parse(decodeURIComponent(encodedJson));
+        
+        // Cambiar el tipo de grano si difiere del actual
+        if (rec.productType && rec.productType !== currentProduct) {
+          document.getElementById('globalProductType').value = rec.productType;
+          changeProductType(rec.productType);
+        }
+
+        // Cargar todos los datos recuperados en la Opción A
+        optionsData[targetOptIdx].name = `Cargado: ${rec.variety} (${rec.provider || 'S/E'})`;
+        optionsData[targetOptIdx].date = rec.date || new Date().toISOString().split('T')[0];
+        optionsData[targetOptIdx].variety = rec.variety || VARIETIES_MAP[currentProduct][0];
+        optionsData[targetOptIdx].provider = rec.provider || '';
+        optionsData[targetOptIdx].userAuthor = rec.userAuthor || 'Importado';
+        optionsData[targetOptIdx].rawPrice = parseFloat(rec.rawPrice) || 0;
+        optionsData[targetOptIdx].maquila = parseFloat(rec.maquila) || 0;
+        optionsData[targetOptIdx].freight = parseFloat(rec.freight) || 0;
+        optionsData[targetOptIdx].packBag = parseFloat(rec.packBag) || 0;
+        optionsData[targetOptIdx].mermaPct = parseFloat(rec.mermaPct) || 0;
+        optionsData[targetOptIdx].marginPct = parseFloat(rec.marginPct) || 5.0;
+        optionsData[targetOptIdx].subproducts = rec.subproducts ? JSON.parse(JSON.stringify(rec.subproducts)) : [];
+
+        renderColumns();
+        recalculate();
+        toggleHistoryModal();
+        scrollToOption(targetOptIdx);
+
+        alert(` Cotización cargada con éxito en la Opción A:\n${rec.productType.toUpperCase()} - ${rec.variety}`);
+      } catch (e) {
+        alert('Error al intentar abrir la cotización seleccionada.');
+      }
     }
 
     function toggleHistoryModal() {
       const modal = document.getElementById('historyModal');
       if (modal.classList.contains('hidden')) {
-        renderHistoryTable();
+        renderHistoryModalContent();
         modal.classList.remove('hidden');
       } else {
         modal.classList.add('hidden');
       }
+    }
+
+    function renderHistoryModalContent() {
+      renderHistoryTable();
+      renderPriceChart();
     }
 
     function renderHistoryTable() {
@@ -642,14 +702,17 @@
         const jsonStr = encodeURIComponent(JSON.stringify(rec));
 
         tr.innerHTML = `
-          <td class="p-2.5 font-sans"><span class="text-slate-300 font-bold block">${rec.date}</span><span class="text-[10px] text-emerald-400">👤 ${rec.userAuthor}</span></td>
+          <td class="p-2.5 font-sans"><span class="text-slate-300 font-bold block">${rec.date}</span><span class="text-[10px] text-emerald-400">👤 ${rec.userAuthor || 'Anónimo'}</span></td>
           <td class="p-2.5"><span class="uppercase font-bold text-emerald-400">${rec.productType}</span> <span class="text-slate-400">(${rec.variety})</span></td>
-          <td class="p-2.5 text-slate-200 font-sans">${rec.provider}</td>
-          <td class="p-2.5 text-right font-bold text-white">$${rec.rawPrice.toFixed(2)}</td>
-          <td class="p-2.5 text-right font-bold text-emerald-300">$${rec.costKg.toFixed(2)} <span class="text-slate-300 text-[11px] font-normal">($${rec.costBag.toFixed(2)})</span></td>
+          <td class="p-2.5 text-slate-200 font-sans">${rec.provider || 'N/A'}</td>
+          <td class="p-2.5 text-right font-bold text-white">$${(rec.rawPrice || 0).toFixed(2)}</td>
+          <td class="p-2.5 text-right font-bold text-emerald-300">$${(rec.costKg || 0).toFixed(2)} <span class="text-slate-300 text-[11px] font-normal">($${(rec.costBag || 0).toFixed(2)})</span></td>
           <td class="p-2.5 text-center flex justify-center space-x-1">
-            <button onclick="shareRecordLink('${jsonStr}')" class="bg-emerald-800 hover:bg-emerald-600 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center space-x-1">
-              <span>🔗 Compartir Link</span>
+            <button onclick="loadHistoryRecordIntoOption('${jsonStr}', 0)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center space-x-1 shadow">
+              <span>📂 Cargar</span>
+            </button>
+            <button onclick="shareRecordLink('${jsonStr}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded text-[10px] font-bold">
+              <span>🔗 Link</span>
             </button>
             <button onclick="deleteHistoryRecord('${rec.id}')" class="text-red-400 hover:text-red-300 font-bold px-1">✕</button>
           </td>
@@ -658,7 +721,82 @@
       });
     }
 
-    // GENERADOR Y COMPARTIDOR DE LINK AUTOMÁTICO
+    function renderPriceChart() {
+      const canvas = document.getElementById('priceTrendChart');
+      if (!canvas) return;
+
+      const filter = document.getElementById('filterHistoryProduct').value;
+      const filtered = historyRecords
+        .filter(r => filter === 'todos' || r.productType === filter)
+        .slice()
+        .reverse(); // Orden cronológico para la gráfica
+
+      const labels = filtered.map(r => `${r.date}\n(${r.variety || 'Gral'})`);
+      const rawPrices = filtered.map(r => r.rawPrice || 0);
+      const cleanCosts = filtered.map(r => r.costKg || 0);
+
+      if (priceChartInstance) {
+        priceChartInstance.destroy();
+      }
+
+      priceChartInstance = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Materia Prima ($/kg)',
+              data: rawPrices,
+              borderColor: '#94a3b8',
+              backgroundColor: 'rgba(148, 163, 184, 0.1)',
+              borderDash: [5, 5],
+              tension: 0.3,
+              pointRadius: 4
+            },
+            {
+              label: 'Costo Limpio ($/kg)',
+              data: cleanCosts,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.2)',
+              fill: true,
+              tension: 0.3,
+              pointRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#cbd5e1', font: { size: 11 } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: $${context.parsed.y.toFixed(2)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              grid: { color: 'rgba(51, 65, 85, 0.3)' }
+            },
+            y: {
+              ticks: { 
+                color: '#10b981',
+                font: { size: 11 },
+                callback: function(val) { return '$' + val; }
+              },
+              grid: { color: 'rgba(51, 65, 85, 0.4)' }
+            }
+          }
+        }
+      });
+    }
+
     function shareRecordLink(encodedJson) {
       const jsonStr = decodeURIComponent(encodedJson);
       const b64Data = btoa(unescape(encodeURIComponent(jsonStr)));
@@ -666,7 +804,6 @@
       const baseUrl = window.location.origin + window.location.pathname;
       const shareableUrl = `${baseUrl}?quote=${b64Data}`;
 
-      // Usar Web Share API si está disponible en celular
       if (navigator.share) {
         navigator.share({
           title: 'Cotización de Granos',
@@ -682,19 +819,18 @@
 
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
-        alert('🔗 Enlace copiado al portapapeles. Envíalo por WhatsApp o correo. Al hacer clic, el nuevo usuario importará la cotización automáticamente a su historial.');
+        alert('🔗 Enlace copiado al portapapeles. Al abrirlo, el destinatario podrá importar la cotización a su historial y cargarla en su pantalla.');
       }).catch(() => {
-        prompt('Copia este enlace directo para enviarlo:', text);
+        prompt('Copia este enlace directo:', text);
       });
     }
 
     function importQuotePrompt() {
-      const input = prompt('Pega aquí el enlace recibido o el código de cotización:');
+      const input = prompt('Pega aquí el enlace recibido o el código JSON de la cotización:');
       if (!input) return;
 
       let jsonStr = input.trim();
 
-      // Si pegaron un link completo, extraer el parámetro ?quote=
       if (input.includes('quote=')) {
         try {
           const url = new URL(input);
@@ -707,11 +843,11 @@
 
       try {
         const rec = JSON.parse(jsonStr);
-        if (rec.productType && rec.costKg) {
+        if (rec.productType && (rec.costKg !== undefined || rec.rawPrice !== undefined)) {
           rec.id = 'rec_imp_' + Date.now();
           historyRecords.unshift(rec);
           localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
-          renderHistoryTable();
+          renderHistoryModalContent();
           alert(`¡Cotización importada y guardada exitosamente!\nProducto: ${rec.productType.toUpperCase()} - Autor: ${rec.userAuthor || 'Externo'}`);
         } else {
           alert('El formato no es válido.');
@@ -734,14 +870,14 @@
     function deleteHistoryRecord(id) {
       historyRecords = historyRecords.filter(r => r.id !== id);
       localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
-      renderHistoryTable();
+      renderHistoryModalContent();
     }
 
     function clearHistory() {
       if (confirm('¿Vaciar todo el historial guardado?')) {
         historyRecords = [];
         localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
-        renderHistoryTable();
+        renderHistoryModalContent();
       }
     }
 
