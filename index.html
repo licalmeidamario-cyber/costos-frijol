@@ -87,7 +87,7 @@
       </div>
     </section>
 
-    <!-- SECCIÓN CONCENTRADO SUPERIOR (Matriz Comparativa de Resultados Unificada) -->
+    <!-- SECCIÓN CONCENTRADO SUPERIOR -->
     <section class="bg-gradient-to-br from-slate-900 via-emerald-950/80 to-slate-900 border border-emerald-600/30 rounded-2xl p-4 shadow-2xl space-y-3">
       <div class="flex items-center justify-between border-b border-emerald-800/40 pb-2">
         <h2 class="text-xs md:text-sm uppercase tracking-wider text-emerald-400 font-bold flex items-center space-x-2">
@@ -96,7 +96,6 @@
         <span id="activeProductBadge" class="text-[10px] md:text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold uppercase">Frijol</span>
       </div>
 
-      <!-- Tabla Comparativa Ejecutiva Unificada -->
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs md:text-sm font-mono">
           <thead>
@@ -114,23 +113,18 @@
               <td id="summary_raw_B" class="py-2.5 px-2 text-center font-bold text-white">$0.00 <span class="text-[10px] text-slate-400 font-normal">(0%)</span></td>
               <td id="summary_raw_C" class="py-2.5 px-2 text-center font-bold text-white">$0.00 <span class="text-[10px] text-slate-400 font-normal">(0%)</span></td>
             </tr>
-            
-            <!-- RENGLÓN UNIFICADO: COSTO LIMPIO (Kg + Bulto) -->
             <tr>
               <td class="py-2.5 px-2 font-sans text-slate-300 font-medium">Costo Limpio <span class="text-[10px] text-slate-400 block font-normal">(kg / bulto 25kg)</span></td>
               <td id="summary_costKg_A" class="py-2.5 px-2 text-center font-bold text-emerald-400">$0.00 <span class="text-slate-300 text-xs font-normal">($0.00)</span></td>
               <td id="summary_costKg_B" class="py-2.5 px-2 text-center font-bold text-blue-400">$0.00 <span class="text-slate-300 text-xs font-normal">($0.00)</span></td>
               <td id="summary_costKg_C" class="py-2.5 px-2 text-center font-bold text-amber-400">$0.00 <span class="text-slate-300 text-xs font-normal">($0.00)</span></td>
             </tr>
-
-            <!-- RENGLÓN UNIFICADO: PRECIO VENTA SUGERIDO (Kg + Bulto) -->
             <tr>
               <td class="py-2.5 px-2 font-sans text-slate-300 font-medium">Precio Venta Sug. <span class="text-[10px] text-slate-400 block font-normal">(kg / bulto 25kg)</span></td>
               <td id="summary_priceKg_A" class="py-2.5 px-2 text-center font-bold text-emerald-300">$0.00 <span class="text-emerald-100 text-xs font-normal">($0.00)</span></td>
               <td id="summary_priceKg_B" class="py-2.5 px-2 text-center font-bold text-blue-300">$0.00 <span class="text-blue-100 text-xs font-normal">($0.00)</span></td>
               <td id="summary_priceKg_C" class="py-2.5 px-2 text-center font-bold text-amber-300">$0.00 <span class="text-amber-100 text-xs font-normal">($0.00)</span></td>
             </tr>
-
             <tr class="bg-slate-900/80">
               <td class="py-2.5 px-2 font-sans text-emerald-400 font-bold">Utilidad / Tonelada</td>
               <td id="summary_profitTon_A" class="py-2.5 px-2 text-center font-black text-emerald-400">+$0.00</td>
@@ -155,7 +149,7 @@
       </button>
     </div>
 
-    <!-- CONTENEDOR DE LAS 3 VENTANAS DE COTIZACIÓN -->
+    <!-- VENTANAS DE COTIZACIÓN -->
     <div id="optionsContainer" class="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto snap-x-mandatory no-scrollbar pb-4">
       <div id="opt_col_0" class="snap-center min-w-[88vw] sm:min-w-[350px] md:min-w-0 flex-1 bg-slate-900/90 border border-emerald-500/40 rounded-2xl p-4 shadow-xl space-y-4"></div>
       <div id="opt_col_1" class="snap-center min-w-[88vw] sm:min-w-[350px] md:min-w-0 flex-1 bg-slate-900/90 border border-blue-500/40 rounded-2xl p-4 shadow-xl space-y-4"></div>
@@ -164,25 +158,22 @@
 
   </main>
 
-  <!-- MODAL DE HISTORIAL, ANÁLISIS Y IMPORTACIÓN CONSOLIDADA -->
+  <!-- MODAL DE HISTORIAL -->
   <div id="historyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
     <div class="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
       
-      <!-- Modal Header -->
       <div class="bg-slate-950 p-4 border-b border-slate-800 flex justify-between items-center">
         <div>
           <h3 class="font-bold text-base md:text-lg text-emerald-400 flex items-center space-x-2">
             <span>📜 Historial Consolidado de Cotizaciones</span>
           </h3>
-          <p class="text-xs text-slate-400">Analiza tendencias de precios e importa cotizaciones de otros usuarios.</p>
+          <p class="text-xs text-slate-400">Analiza tendencias e importa cotizaciones mediante enlaces o archivos.</p>
         </div>
         <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-white text-lg font-bold px-2 py-1">✕</button>
       </div>
 
-      <!-- Modal Body -->
       <div class="p-4 overflow-y-auto space-y-4 flex-1">
         
-        <!-- Acciones de Consolidación e Importación -->
         <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs">
           <div class="flex items-center space-x-2">
             <span class="text-slate-400">Filtrar Grano:</span>
@@ -198,7 +189,7 @@
 
           <div class="flex items-center space-x-2">
             <button onclick="importQuotePrompt()" class="bg-blue-600/80 hover:bg-blue-500 text-white px-2.5 py-1.5 rounded-lg font-semibold flex items-center space-x-1 transition-all">
-              <span>📥 Importar Cotización Recibida</span>
+              <span>📥 Importar Código/Link</span>
             </button>
             <button onclick="exportFullHistoryJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded-lg font-medium">
               📤 Exportar Todo
@@ -207,7 +198,6 @@
           </div>
         </div>
 
-        <!-- Tabla Histórica -->
         <div class="overflow-x-auto rounded-xl border border-slate-800">
           <table class="w-full text-left text-xs font-mono">
             <thead class="bg-slate-950 text-slate-400 uppercase text-[10px]">
@@ -228,7 +218,6 @@
 
       </div>
 
-      <!-- Modal Footer -->
       <div class="bg-slate-950 p-3 border-t border-slate-800 flex justify-end">
         <button onclick="toggleHistoryModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold">Cerrar</button>
       </div>
@@ -254,7 +243,7 @@
         productType: 'frijol',
         variety: 'Reyna',
         provider: 'Productor Juan José Ríos',
-        userAuthor: 'Mario A.',
+        userAuthor: 'Mario Almeida Torres',
         date: new Date().toISOString().split('T')[0],
         rawPrice: 25.00, maquila: 0.60, freight: 0.40, packBag: 10.00, mermaPct: 1.0, marginPct: 5.0,
         subproducts: [
@@ -267,7 +256,7 @@
         productType: 'frijol',
         variety: 'Higuera',
         provider: 'Agrícola Los Mochis',
-        userAuthor: 'Mario A.',
+        userAuthor: 'Mario Almeida Torres',
         date: new Date().toISOString().split('T')[0],
         rawPrice: 24.50, maquila: 0.60, freight: 0.50, packBag: 10.00, mermaPct: 1.2, marginPct: 5.0,
         subproducts: [
@@ -279,7 +268,7 @@
         productType: 'frijol',
         variety: 'Pinto',
         provider: 'Bodega Guasave',
-        userAuthor: 'Mario A.',
+        userAuthor: 'Mario Almeida Torres',
         date: new Date().toISOString().split('T')[0],
         rawPrice: 26.00, maquila: 0.50, freight: 0.35, packBag: 10.00, mermaPct: 0.8, marginPct: 5.0,
         subproducts: [
@@ -301,6 +290,46 @@
 
       renderColumns();
       recalculate();
+
+      // DETECCIÓN AUTOMÁTICA DE LINK RECIBIDO (URL Query Parameter)
+      checkUrlForImportedQuote();
+    }
+
+    function checkUrlForImportedQuote() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const importedData = urlParams.get('quote');
+
+      if (importedData) {
+        try {
+          const jsonStr = decodeURIComponent(escape(atob(importedData)));
+          const rec = JSON.parse(jsonStr);
+
+          if (rec.productType && rec.costKg) {
+            setTimeout(() => {
+              const confirmImport = confirm(
+                `📥 Cotización Recibida vía Link:\n\n` +
+                `Producto: ${rec.productType.toUpperCase()} (${rec.variety})\n` +
+                `Proveedor: ${rec.provider}\n` +
+                `Cotizado por: ${rec.userAuthor || 'Desconocido'}\n` +
+                `Costo Limpio: $${rec.costKg.toFixed(2)}/kg\n\n` +
+                `¿Deseas guardar esta cotización en tu historial?`
+              );
+
+              if (confirmImport) {
+                rec.id = 'rec_link_' + Date.now();
+                historyRecords.unshift(rec);
+                localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
+                toggleHistoryModal();
+              }
+
+              // Limpiar URL sin recargar la página
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }, 500);
+          }
+        } catch (e) {
+          console.error("Error al decodificar cotización del link", e);
+        }
+      }
     }
 
     function changeProductType(product) {
@@ -340,7 +369,6 @@
             </button>
           </div>
 
-          <!-- Metadata Registro -->
           <div class="space-y-2 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 text-xs">
             <div class="grid grid-cols-2 gap-2">
               <div>
@@ -361,12 +389,11 @@
               </div>
               <div>
                 <label class="text-[10px] text-slate-400 block mb-0.5">Cotizado por (Usuario)</label>
-                <input type="text" placeholder="Ej. Mario A." value="${opt.userAuthor || ''}" onchange="updateOptField(${i}, 'userAuthor', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-[11px]" />
+                <input type="text" placeholder="Ej. Mario Almeida" value="${opt.userAuthor || ''}" onchange="updateOptField(${i}, 'userAuthor', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-[11px]" />
               </div>
             </div>
           </div>
 
-          <!-- Inputs Operación -->
           <div class="space-y-2">
             <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Entrada y Operación</h4>
             <div class="grid grid-cols-2 gap-2 text-xs">
@@ -389,7 +416,6 @@
             </div>
           </div>
 
-          <!-- Subproductos -->
           <div class="space-y-2">
             <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Merma y Subproductos</h4>
             <div class="grid grid-cols-2 gap-2 items-center bg-slate-950/50 p-2 rounded-lg border border-slate-800 text-xs">
@@ -407,7 +433,6 @@
             </button>
           </div>
 
-          <!-- Margen -->
           <div class="space-y-2 pt-2 border-t border-slate-800">
             <div class="flex justify-between items-center text-xs">
               <span class="font-medium text-slate-300">Margen Comercial:</span>
@@ -557,30 +582,22 @@
         optionsData[i].calculatedPriceBag = pricePerBag25kg;
 
         const key = keys[i];
-        
-        // Renglón Materia Prima
         document.getElementById(`summary_raw_${key}`).innerHTML = `$${rawPrice.toFixed(2)} <span class="text-[10px] text-slate-400 font-normal">(${cleanYieldPct.toFixed(1)}%)</span>`;
-        
-        // RENGLÓN UNIFICADO: COSTO (Kg + Bulto)
         document.getElementById(`summary_costKg_${key}`).innerHTML = `$${costPerKgClean.toFixed(2)} <span class="text-slate-300 text-xs font-normal">($${costPerBag25kg.toFixed(2)})</span>`;
-        
-        // RENGLÓN UNIFICADO: PRECIO VENTA (Kg + Bulto)
         document.getElementById(`summary_priceKg_${key}`).innerHTML = `$${pricePerKg.toFixed(2)} <span class="text-emerald-200 text-xs font-normal">($${pricePerBag25kg.toFixed(2)})</span>`;
-        
-        // Utilidad
         document.getElementById(`summary_profitTon_${key}`).innerText = `+$${profitPerTon.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       }
 
       saveState();
     }
 
-    // Historial y Consolidación sin Servidor
+    // HISTORIAL Y COMPARTIDO POR LINK
     function saveToHistory(optIdx) {
       const opt = optionsData[optIdx];
       const record = {
         id: 'rec_' + Date.now() + '_' + Math.floor(Math.random()*1000),
         date: opt.date || new Date().toISOString().split('T')[0],
-        userAuthor: opt.userAuthor || 'Usuario Generico',
+        userAuthor: opt.userAuthor || 'Mario Almeida Torres',
         productType: currentProduct,
         variety: opt.variety || 'General',
         provider: opt.provider || 'Sin Especificar',
@@ -593,7 +610,7 @@
 
       historyRecords.unshift(record);
       localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
-      alert(`Cotización guardada en Historial por ${record.userAuthor}:\n${record.productType.toUpperCase()} (${record.variety}) - ${record.provider}\nCosto: $${record.costKg.toFixed(2)}/kg ($${record.costBag.toFixed(2)}/bulto)`);
+      alert(`Cotización guardada en Historial:\n${record.productType.toUpperCase()} (${record.variety}) - ${record.provider}\nCosto: $${record.costKg.toFixed(2)}/kg ($${record.costBag.toFixed(2)}/bulto)`);
     }
 
     function toggleHistoryModal() {
@@ -630,8 +647,10 @@
           <td class="p-2.5 text-slate-200 font-sans">${rec.provider}</td>
           <td class="p-2.5 text-right font-bold text-white">$${rec.rawPrice.toFixed(2)}</td>
           <td class="p-2.5 text-right font-bold text-emerald-300">$${rec.costKg.toFixed(2)} <span class="text-slate-300 text-[11px] font-normal">($${rec.costBag.toFixed(2)})</span></td>
-          <td class="p-2.5 text-center flex justify-center space-x-2">
-            <button onclick="shareRecordCode('${jsonStr}')" class="bg-emerald-900/80 hover:bg-emerald-700 text-emerald-300 px-2 py-1 rounded text-[10px] font-bold">📤 Copiar Código</button>
+          <td class="p-2.5 text-center flex justify-center space-x-1">
+            <button onclick="shareRecordLink('${jsonStr}')" class="bg-emerald-800 hover:bg-emerald-600 text-white px-2 py-1 rounded text-[10px] font-bold flex items-center space-x-1">
+              <span>🔗 Compartir Link</span>
+            </button>
             <button onclick="deleteHistoryRecord('${rec.id}')" class="text-red-400 hover:text-red-300 font-bold px-1">✕</button>
           </td>
         `;
@@ -639,32 +658,66 @@
       });
     }
 
-    function shareRecordCode(encodedJson) {
+    // GENERADOR Y COMPARTIDOR DE LINK AUTOMÁTICO
+    function shareRecordLink(encodedJson) {
       const jsonStr = decodeURIComponent(encodedJson);
-      navigator.clipboard.writeText(jsonStr).then(() => {
-        alert('Código de cotización copiado al portapapeles. Envíaselo por WhatsApp a tu compañero para que lo consolide en su historial.');
+      const b64Data = btoa(unescape(encodeURIComponent(jsonStr)));
+      
+      const baseUrl = window.location.origin + window.location.pathname;
+      const shareableUrl = `${baseUrl}?quote=${b64Data}`;
+
+      // Usar Web Share API si está disponible en celular
+      if (navigator.share) {
+        navigator.share({
+          title: 'Cotización de Granos',
+          text: 'Te comparto esta cotización para el historial:',
+          url: shareableUrl
+        }).catch(() => {
+          copyToClipboard(shareableUrl);
+        });
+      } else {
+        copyToClipboard(shareableUrl);
+      }
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('🔗 Enlace copiado al portapapeles. Envíalo por WhatsApp o correo. Al hacer clic, el nuevo usuario importará la cotización automáticamente a su historial.');
       }).catch(() => {
-        prompt('Copia este código de cotización para compartirlo:', jsonStr);
+        prompt('Copia este enlace directo para enviarlo:', text);
       });
     }
 
     function importQuotePrompt() {
-      const code = prompt('Pega aquí el código de cotización recibido de otro usuario:');
-      if (!code) return;
+      const input = prompt('Pega aquí el enlace recibido o el código de cotización:');
+      if (!input) return;
+
+      let jsonStr = input.trim();
+
+      // Si pegaron un link completo, extraer el parámetro ?quote=
+      if (input.includes('quote=')) {
+        try {
+          const url = new URL(input);
+          const quoteParam = url.searchParams.get('quote');
+          if (quoteParam) {
+            jsonStr = decodeURIComponent(escape(atob(quoteParam)));
+          }
+        } catch (e) {}
+      }
 
       try {
-        const rec = JSON.parse(code.trim());
+        const rec = JSON.parse(jsonStr);
         if (rec.productType && rec.costKg) {
           rec.id = 'rec_imp_' + Date.now();
           historyRecords.unshift(rec);
           localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
           renderHistoryTable();
-          alert(`¡Cotización consolidada en tu historial exitosamente!\nProducto: ${rec.productType.toUpperCase()} - Autor: ${rec.userAuthor || 'Externo'}`);
+          alert(`¡Cotización importada y guardada exitosamente!\nProducto: ${rec.productType.toUpperCase()} - Autor: ${rec.userAuthor || 'Externo'}`);
         } else {
-          alert('El código ingresado no tiene un formato válido de cotización.');
+          alert('El formato no es válido.');
         }
       } catch (e) {
-        alert('Error al procesar el código de cotización. Verifica que esté completo.');
+        alert('Error al procesar el enlace o código de cotización.');
       }
     }
 
