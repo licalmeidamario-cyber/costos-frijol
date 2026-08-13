@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#064e3b" />
-  <meta name="description" content="Comparador de Costos y Cotizador Comercial - Orgánicos Milenarios SA de CV" />
+  <meta name="description" content="Comparador de Costos con Subproductos y Cotizador Comercial - Orgánicos Milenarios SA de CV" />
   <title>Orgánicos Milenarios | Costos & Cotizador Comercial</title>
 
   <link rel="manifest" href="./manifest.json" />
@@ -55,9 +55,9 @@
       <div class="flex flex-col md:flex-row md:items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl p-4 gap-3 shadow-lg">
         <div>
           <h2 class="text-sm md:text-base font-bold text-emerald-400 flex items-center space-x-2">
-            <span>PASO 1: Análisis Comparativo de Costos de Entrada</span>
+            <span>PASO 1: Análisis Comparativo de Costos y Subproductos</span>
           </h2>
-          <p class="text-xs text-slate-400">Evalúa proveedores, mermas y recuperaciones para determinar el costo neto por kilo limpiado.</p>
+          <p class="text-xs text-slate-400">Evalúa proveedores, mermas y recuperaciones de subproductos para determinar el costo neto real por kilo limpiado.</p>
         </div>
 
         <div class="flex items-center space-x-3">
@@ -85,13 +85,19 @@
           </thead>
           <tbody class="divide-y divide-slate-800/60">
             <tr>
-              <td class="py-2 px-2 font-sans text-slate-300">Mat. Prima / Rend.</td>
+              <td class="py-2 px-2 font-sans text-slate-300">Precio Mat. Prima / Rend. Limpio</td>
               <td id="summary_raw_A" class="py-2 px-2 text-center font-bold text-white">$0.00</td>
               <td id="summary_raw_B" class="py-2 px-2 text-center font-bold text-white">$0.00</td>
               <td id="summary_raw_C" class="py-2 px-2 text-center font-bold text-white">$0.00</td>
             </tr>
             <tr>
-              <td class="py-2 px-2 font-sans text-slate-300">Costo Limpio (kg / Bulto)</td>
+              <td class="py-2 px-2 font-sans text-slate-300">Recuperación Subproductos (Ton)</td>
+              <td id="summary_rec_A" class="py-2 px-2 text-center font-bold text-emerald-300">$0.00</td>
+              <td id="summary_rec_B" class="py-2 px-2 text-center font-bold text-blue-300">$0.00</td>
+              <td id="summary_rec_C" class="py-2 px-2 text-center font-bold text-amber-300">$0.00</td>
+            </tr>
+            <tr>
+              <td class="py-2 px-2 font-sans text-slate-300 font-bold">Costo Neto Limpio (kg / Bulto 25kg)</td>
               <td id="summary_costKg_A" class="py-2 px-2 text-center font-bold text-emerald-400">$0.00</td>
               <td id="summary_costKg_B" class="py-2 px-2 text-center font-bold text-blue-400">$0.00</td>
               <td id="summary_costKg_C" class="py-2 px-2 text-center font-bold text-amber-400">$0.00</td>
@@ -260,7 +266,7 @@
             <div>
               <h1 class="text-lg font-black text-emerald-950 uppercase tracking-tight">Orgánicos Milenarios SA de CV</h1>
               <p class="text-[10px] text-slate-600 font-semibold">Complejo Industrial & Comercialización de Granos</p>
-              <p class="text-[10px] text-slate-500">Los Mochis, Sinaloa, México • Tel: (668) 811-8726</p>
+              <p class="text-[10px] text-slate-500">Los Mochis, Sinaloa, México • Tel: (668) 812-0000</p>
             </div>
             <div class="text-right">
               <span id="pdfTagType" class="inline-block bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-md mb-1">Cotización de Venta</span>
@@ -378,7 +384,7 @@
   </div>
 
   <script>
-    const STORAGE_KEY_MULTI = 'granos_multi_quote_v5';
+    const STORAGE_KEY_MULTI = 'granos_multi_quote_v6';
     const STORAGE_KEY_HISTORY = 'granos_history_records_v3';
 
     const VARIETIES_MAP = {
@@ -394,26 +400,33 @@
         name: 'Opción A', productType: 'frijol', variety: 'Reyna', provider: 'Productor Juan José Ríos',
         userAuthor: 'Mario Almeida Torres', date: new Date().toISOString().split('T')[0],
         rawPrice: 25.00, maquila: 0.60, freight: 0.40, packBag: 10.00, mermaPct: 1.0, marginPct: 5.0,
-        subproducts: [{ id: 'sub_a1', name: 'Granillo', pct: 3.0, price: 6.00 }]
+        subproducts: [
+          { id: 'sub_a1', name: 'Granillo', pct: 3.0, price: 6.00 },
+          { id: 'sub_a2', name: 'Mochote', pct: 1.5, price: 3.50 }
+        ]
       },
       {
         name: 'Opción B', productType: 'frijol', variety: 'Higuera', provider: 'Agrícola Los Mochis',
         userAuthor: 'Mario Almeida Torres', date: new Date().toISOString().split('T')[0],
         rawPrice: 24.50, maquila: 0.60, freight: 0.50, packBag: 10.00, mermaPct: 1.2, marginPct: 5.0,
-        subproducts: [{ id: 'sub_b1', name: 'Granillo', pct: 3.5, price: 6.00 }]
+        subproducts: [
+          { id: 'sub_b1', name: 'Granillo', pct: 3.5, price: 6.00 }
+        ]
       },
       {
         name: 'Opción C', productType: 'frijol', variety: 'Pinto', provider: 'Bodega Guasave',
         userAuthor: 'Mario Almeida Torres', date: new Date().toISOString().split('T')[0],
         rawPrice: 26.00, maquila: 0.50, freight: 0.35, packBag: 10.00, mermaPct: 0.8, marginPct: 5.0,
-        subproducts: [{ id: 'sub_c1', name: 'Granillo', pct: 2.5, price: 6.50 }]
+        subproducts: [
+          { id: 'sub_c1', name: 'Granillo', pct: 2.5, price: 6.50 },
+          { id: 'sub_c2', name: 'Cáscara / Polvillo', pct: 2.0, price: 1.50 }
+        ]
       }
     ];
 
     let optionsData = [];
     let historyRecords = [];
     let currentProduct = 'frijol';
-    let priceChartInstance = null;
 
     function initApp() {
       const savedOptions = localStorage.getItem(STORAGE_KEY_MULTI);
@@ -426,7 +439,7 @@
       recalculate();
       generateFolio();
 
-      // Cargar la primera opción por defecto en el cotizador comercial
+      // Cargar la primera opción por defecto
       transferToQuote(0);
     }
 
@@ -509,13 +522,19 @@
             </div>
           </div>
 
+          <!-- MÓDULO DE SUBPRODUCTOS -->
           <div class="space-y-2">
-            <h4 class="text-[11px] font-bold text-slate-400 uppercase">Merma y Subproductos</h4>
+            <div class="flex justify-between items-center">
+              <h4 class="text-[11px] font-bold text-slate-400 uppercase">Merma y Subproductos</h4>
+              <button onclick="addSubproduct(${i})" class="text-[10px] bg-emerald-950 hover:bg-emerald-900 border border-emerald-600/40 text-emerald-300 font-bold px-2 py-0.5 rounded-lg">+ Agregar</button>
+            </div>
+
             <div class="grid grid-cols-2 gap-2 items-center bg-slate-950/50 p-2 rounded-lg border border-slate-800 text-xs">
-              <span class="text-[11px] text-red-400">Merma (%)</span>
+              <span class="text-[11px] text-red-400">Merma Inrecuperable (%)</span>
               <input type="number" step="0.1" id="in_mermaPct_${i}" value="${opt.mermaPct}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-right text-white font-mono" />
             </div>
-            <div id="subContainer_${i}" class="space-y-1"></div>
+
+            <div id="subContainer_${i}" class="space-y-1.5"></div>
           </div>
 
           <button onclick="transferToQuote(${i})" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow transition-all flex items-center justify-center space-x-1">
@@ -537,21 +556,41 @@
         div.className = 'bg-slate-950/60 p-2 rounded-lg border border-slate-800 space-y-1';
         div.innerHTML = `
           <div class="flex justify-between items-center text-xs">
-            <input type="text" value="${sub.name}" onchange="updateSubName(${optIdx}, ${subIdx}, this.value)" class="bg-transparent text-slate-200 font-medium border-b border-transparent focus:border-slate-500 w-2/3 text-[11px]" />
+            <input type="text" value="${sub.name}" onchange="updateSubName(${optIdx}, ${subIdx}, this.value)" class="bg-transparent text-emerald-300 font-medium border-b border-transparent focus:border-emerald-500 w-3/4 text-[11px]" />
+            <button onclick="removeSubproduct(${optIdx}, ${subIdx})" class="text-red-400 hover:text-red-300 font-bold text-[10px]">✕</button>
           </div>
-          <div class="grid grid-cols-2 gap-1 text-xs">
+          <div class="grid grid-cols-2 gap-2 text-xs">
             <div class="flex items-center space-x-1">
+              <span class="text-[9px] text-slate-400">% Salida:</span>
               <input type="number" step="0.1" value="${sub.pct}" oninput="updateSubPct(${optIdx}, ${subIdx}, this.value)" class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-right text-white font-mono text-[11px]" />
-              <span class="text-[10px] text-slate-400">%</span>
             </div>
             <div class="flex items-center space-x-1">
-              <span class="text-[10px] text-slate-400">$</span>
-              <input type="number" step="0.5" value="${sub.price}" oninput="updateSubPrice(${optIdx}, ${subIdx}, this.value)" class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-right text-white font-mono text-[11px]" />
+              <span class="text-[9px] text-slate-400">$/kg:</span>
+              <input type="number" step="0.5" value="${sub.price}" oninput="updateSubPrice(${optIdx}, ${subIdx}, this.value)" class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-right text-amber-300 font-mono text-[11px]" />
             </div>
           </div>
         `;
         container.appendChild(div);
       });
+    }
+
+    function addSubproduct(optIdx) {
+      optionsData[optIdx].subproducts.push({
+        id: 'sub_' + Date.now(),
+        name: 'Nuevo Subproducto',
+        pct: 1.0,
+        price: 3.00
+      });
+      saveState();
+      renderSubproductsForOpt(optIdx);
+      recalculate();
+    }
+
+    function removeSubproduct(optIdx, subIdx) {
+      optionsData[optIdx].subproducts.splice(subIdx, 1);
+      saveState();
+      renderSubproductsForOpt(optIdx);
+      recalculate();
     }
 
     function updateOptField(optIdx, field, val) { optionsData[optIdx][field] = val; saveState(); }
@@ -576,13 +615,13 @@
         optionsData[i].packBag = packBag;
         optionsData[i].mermaPct = mermaPct;
 
-        const batchKg = 1000;
+        const batchKg = 1000; // Base de cálculo por tonelada
         let totalSubPct = mermaPct;
-        let totalRecovery = 0;
+        let totalRecoveryPerTon = 0;
 
         optionsData[i].subproducts.forEach(sub => {
           totalSubPct += sub.pct;
-          totalRecovery += (batchKg * (sub.pct / 100)) * sub.price;
+          totalRecoveryPerTon += (batchKg * (sub.pct / 100)) * sub.price;
         });
 
         const cleanYieldPct = Math.max(0, 100 - totalSubPct);
@@ -595,7 +634,7 @@
         const totalPackaging = cleanKg * packPerKg;
 
         const grossCost = costRaw + costMaquila + costFreight + totalPackaging;
-        const netCost = grossCost - totalRecovery;
+        const netCost = grossCost - totalRecoveryPerTon;
         const costPerKgClean = cleanKg > 0 ? (netCost / cleanKg) : 0;
         const costPerBag25kg = costPerKgClean * 25;
 
@@ -603,7 +642,8 @@
         optionsData[i].calculatedCostBag = costPerBag25kg;
 
         const key = keys[i];
-        document.getElementById(`summary_raw_${key}`).innerHTML = `$${rawPrice.toFixed(2)} <span class="text-[10px] text-slate-400">(${cleanYieldPct.toFixed(1)}%)</span>`;
+        document.getElementById(`summary_raw_${key}`).innerHTML = `$${rawPrice.toFixed(2)} <span class="text-[10px] text-slate-400">(${cleanYieldPct.toFixed(1)}% rend.)</span>`;
+        document.getElementById(`summary_rec_${key}`).innerHTML = `+$${totalRecoveryPerTon.toFixed(2)}/Ton`;
         document.getElementById(`summary_costKg_${key}`).innerHTML = `$${costPerKgClean.toFixed(2)} <span class="text-slate-300 text-xs">($${costPerBag25kg.toFixed(2)})</span>`;
       }
 
@@ -618,7 +658,7 @@
       document.getElementById('commProvider').value = opt.provider || 'S/E';
       document.getElementById('commCostKg').value = opt.calculatedCostKg ? opt.calculatedCostKg.toFixed(2) : '0.00';
       
-      // Sugerir precio público con un 12% de margen por defecto (revisable a discreción)
+      // Sugerir precio público con un 12% de margen por defecto
       const suggestedPrice = (opt.calculatedCostKg || 0) * 1.12;
       document.getElementById('commPriceKg').value = suggestedPrice.toFixed(2);
 
