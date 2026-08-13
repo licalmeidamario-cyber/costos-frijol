@@ -4,13 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#064e3b" />
-  <meta name="description" content="Calculadora de liquidación y costos de frijol." />
+  <meta name="description" content="Cotizador Multiproducto e Historial de Precios de Granos." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Costos Frijol" />
-  <title>Calculadora Pro Frijol</title>
+  <meta name="apple-mobile-web-app-title" content="Cotizador Granos" />
+  <title>Cotizador Multiproducto & Historial de Granos</title>
 
-  <!-- Enlace obligatorio al manifest -->
   <link rel="manifest" href="./manifest.json" />
   <link rel="icon" type="image/png" href="./icon-512.png" />
 
@@ -30,345 +28,634 @@
     input[type=number] {
       -moz-appearance: textfield;
     }
+    .snap-x-mandatory {
+      scroll-snap-type: x mandatory;
+    }
+    .snap-center {
+      scroll-snap-align: center;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans pb-16 antialiased">
 
   <!-- Header Superior -->
-  <header class="bg-emerald-900 border-b border-emerald-700/50 sticky top-0 z-30 shadow-lg px-4 py-3 flex items-center justify-between">
-    <div class="flex items-center space-x-2">
-      <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400 flex items-center justify-center font-bold text-emerald-300">
-        🌱
+  <header class="bg-emerald-950 border-b border-emerald-800/60 sticky top-0 z-40 shadow-xl px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center font-bold text-emerald-300 text-lg">
+        🌾
       </div>
       <div>
-        <h1 class="font-bold text-base text-emerald-100 leading-tight">Costos Frijol Pro</h1>
-        <p class="text-[10px] text-emerald-300 uppercase tracking-widest font-semibold">Guardado Automático</p>
+        <h1 class="font-bold text-base md:text-lg text-emerald-100 leading-tight">Cotizador de Granos & Historial</h1>
+        <p class="text-[10px] md:text-xs text-emerald-300 uppercase tracking-widest font-semibold">Mercado Nacional • Bulto 25 kg</p>
       </div>
     </div>
-    <button onclick="resetDefaults()" class="text-xs bg-emerald-950/80 hover:bg-emerald-800/80 border border-emerald-600/40 text-emerald-300 px-2.5 py-1 rounded-lg font-medium transition-colors">
-      Restablecer
-    </button>
+    <div class="flex items-center space-x-2">
+      <button onclick="toggleHistoryModal()" class="text-xs bg-emerald-700/60 hover:bg-emerald-600 text-white border border-emerald-500/50 px-3 py-1.5 rounded-lg font-semibold flex items-center space-x-1 shadow transition-all">
+        <span>📜 Historial</span>
+      </button>
+      <button onclick="resetAllDefaults()" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors">
+        Restablecer
+      </button>
+    </div>
   </header>
 
-  <!-- Contenedor Principal -->
-  <main class="max-w-md mx-auto p-4 space-y-4">
+  <main class="max-w-7xl mx-auto p-3 md:p-6 space-y-6">
 
-    <!-- Tarjeta de Resumen Rápido -->
-    <section class="bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 border border-emerald-600/30 rounded-2xl p-4 shadow-xl">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-xs uppercase tracking-wider text-emerald-400 font-bold">Costo Neto Envasado</h2>
-        <span id="badgeYield" class="text-[11px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-mono font-semibold">91.5% limpio</span>
+    <!-- SELECTOR GLOBAL DE TIPO DE PRODUCTO -->
+    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 md:p-4 shadow-lg flex flex-col md:flex-row items-center justify-between gap-3">
+      <div class="flex items-center space-x-2 w-full md:w-auto">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Tipo de Producto:</span>
+        <select id="globalProductType" onchange="changeProductType(this.value)" class="bg-slate-950 border border-emerald-600/50 text-emerald-300 font-bold text-sm rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-400 flex-1 md:flex-none">
+          <option value="frijol">🫘 Frijol</option>
+          <option value="arroz">🌾 Arroz</option>
+          <option value="lenteja">🟤 Lenteja</option>
+          <option value="garbanzo">🟡 Garbanzo</option>
+          <option value="otro">📦 Otro Grano</option>
+        </select>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 mb-3">
-        <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-          <p class="text-[11px] text-slate-400 font-medium">Costo / kg Limpio</p>
-          <p id="resCostKg" class="text-xl font-black text-emerald-400 font-mono">$28.19</p>
-        </div>
-        <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800">
-          <p class="text-[11px] text-slate-400 font-medium">Costo / Bulto (50kg)</p>
-          <p id="resCostBag" class="text-xl font-black text-emerald-400 font-mono">$1,409.62</p>
-        </div>
-      </div>
-
-      <div class="bg-emerald-900/30 border border-emerald-500/20 rounded-xl p-3">
-        <div class="flex justify-between items-center text-xs mb-1">
-          <span class="text-slate-300 font-medium">Precio Venta Sugerido:</span>
-          <span id="resMarginLabel" class="text-emerald-300 font-bold font-mono">Margen: 5%</span>
-        </div>
-        <div class="flex justify-between items-baseline">
-          <p id="resPriceKg" class="text-lg font-bold text-white font-mono">$29.60 <span class="text-xs text-slate-400">/ kg</span></p>
-          <p id="resPriceBag" class="text-base font-semibold text-slate-200 font-mono">$1,480.10 <span class="text-xs text-slate-400">/ bulto</span></p>
-        </div>
-        <div class="mt-2 pt-2 border-t border-emerald-500/20 flex justify-between text-xs">
-          <span class="text-slate-400">Utilidad por Tonelada:</span>
-          <span id="resProfitTon" class="text-emerald-300 font-bold font-mono">+$1,409.62</span>
-        </div>
+      <div class="text-xs text-slate-400 flex items-center space-x-4 w-full md:w-auto justify-end font-mono">
+        <span>Base Cálculos: <strong class="text-white">1 Tonelada</strong></span>
+        <span>Empaque: <strong class="text-white">Bultos 25 kg</strong></span>
       </div>
     </section>
 
-    <!-- 1. Costos de Entrada y Operación -->
-    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-md space-y-3">
-      <h3 class="text-xs uppercase tracking-wider font-bold text-slate-400">1. Materia Prima y Operación</h3>
-      
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-[11px] text-slate-400 block mb-1">Materia Prima ($/kg)</label>
-          <input type="number" step="0.10" id="inRawPrice" class="calc-input w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-emerald-500 focus:outline-none" />
-        </div>
-        <div>
-          <label class="text-[11px] text-slate-400 block mb-1">Maquila/Criba ($/kg)</label>
-          <input type="number" step="0.05" id="inMaquila" class="calc-input w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-emerald-500 focus:outline-none" />
-        </div>
-        <div>
-          <label class="text-[11px] text-slate-400 block mb-1">Flete ($/kg entrada)</label>
-          <input type="number" step="0.05" id="inFreight" class="calc-input w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-emerald-500 focus:outline-none" />
-        </div>
-        <div>
-          <label class="text-[11px] text-slate-400 block mb-1">Envasado ($/bulto 50kg)</label>
-          <input type="number" step="0.50" id="inPackBag" class="calc-input w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-emerald-500 focus:outline-none" />
-        </div>
+    <!-- SECCIÓN CONCENTRADO SUPERIOR (Matriz Comparativa de Resultados) -->
+    <section class="bg-gradient-to-br from-slate-900 via-emerald-950/80 to-slate-900 border border-emerald-600/30 rounded-2xl p-4 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between border-b border-emerald-800/40 pb-2">
+        <h2 class="text-xs md:text-sm uppercase tracking-wider text-emerald-400 font-bold flex items-center space-x-2">
+          <span>📊 Concentrado Comparativo de Cotizaciones</span>
+        </h2>
+        <span id="activeProductBadge" class="text-[10px] md:text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold uppercase">Frijol</span>
+      </div>
+
+      <!-- Tabla Comparativa Ejecutiva -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs md:text-sm font-mono">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 font-sans">
+              <th class="py-2 px-2">Métrica</th>
+              <th class="py-2 px-2 text-center text-emerald-400 font-bold bg-emerald-950/40 rounded-t-lg">Opción A</th>
+              <th class="py-2 px-2 text-center text-blue-400 font-bold bg-slate-900/40 rounded-t-lg">Opción B</th>
+              <th class="py-2 px-2 text-center text-amber-400 font-bold bg-slate-900/40 rounded-t-lg">Opción C</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60">
+            <tr>
+              <td class="py-2 px-2 font-sans text-slate-300 font-medium">Mat. Prima / Rend.</td>
+              <td id="summary_raw_A" class="py-2 px-2 text-center font-bold text-white">$0.00 <span class="text-[10px] text-slate-400 font-normal">(0%)</span></td>
+              <td id="summary_raw_B" class="py-2 px-2 text-center font-bold text-white">$0.00 <span class="text-[10px] text-slate-400 font-normal">(0%)</span></td>
+              <td id="summary_raw_C" class="py-2 px-2 text-center font-bold text-white">$0.00 <span class="text-[10px] text-slate-400 font-normal">(0%)</span></td>
+            </tr>
+            <tr>
+              <td class="py-2 px-2 font-sans text-slate-300 font-medium">Costo / kg Limpio</td>
+              <td id="summary_costKg_A" class="py-2 px-2 text-center font-black text-emerald-400 text-sm md:text-base">$0.00</td>
+              <td id="summary_costKg_B" class="py-2 px-2 text-center font-black text-blue-400 text-sm md:text-base">$0.00</td>
+              <td id="summary_costKg_C" class="py-2 px-2 text-center font-black text-amber-400 text-sm md:text-base">$0.00</td>
+            </tr>
+            <tr>
+              <td class="py-2 px-2 font-sans text-slate-300 font-medium">Costo / Bulto (25kg)</td>
+              <td id="summary_costBag_A" class="py-2 px-2 text-center text-slate-200">$0.00</td>
+              <td id="summary_costBag_B" class="py-2 px-2 text-center text-slate-200">$0.00</td>
+              <td id="summary_costBag_C" class="py-2 px-2 text-center text-slate-200">$0.00</td>
+            </tr>
+            <tr>
+              <td class="py-2 px-2 font-sans text-slate-300 font-medium">Precio Venta Sugerido / Bulto</td>
+              <td id="summary_priceBag_A" class="py-2 px-2 text-center font-bold text-emerald-300">$0.00</td>
+              <td id="summary_priceBag_B" class="py-2 px-2 text-center font-bold text-blue-300">$0.00</td>
+              <td id="summary_priceBag_C" class="py-2 px-2 text-center font-bold text-amber-300">$0.00</td>
+            </tr>
+            <tr class="bg-slate-900/80">
+              <td class="py-2.5 px-2 font-sans text-emerald-400 font-bold">Utilidad / Tonelada</td>
+              <td id="summary_profitTon_A" class="py-2.5 px-2 text-center font-black text-emerald-400">+$0.00</td>
+              <td id="summary_profitTon_B" class="py-2.5 px-2 text-center font-black text-blue-400">+$0.00</td>
+              <td id="summary_profitTon_C" class="py-2.5 px-2 text-center font-black text-amber-400">+$0.00</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <!-- 2. Subproductos y Merma Dinámicos -->
-    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-md space-y-3">
-      <div class="flex justify-between items-center">
-        <h3 class="text-xs uppercase tracking-wider font-bold text-slate-400">2. Subproductos y Merma</h3>
-        <span class="text-[10px] text-slate-500">Base: 1 Tonelada</span>
-      </div>
-
-      <!-- Merma fija no recuperable -->
-      <div class="grid grid-cols-2 gap-3 items-center bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80">
-        <div>
-          <label class="text-[11px] text-red-400 font-medium block">Merma (Tierra/Polvo)</label>
-          <span class="text-[10px] text-slate-500">Pérdida (sin valor)</span>
-        </div>
-        <div class="flex items-center space-x-1">
-          <input type="number" step="0.1" id="inMermaPct" class="calc-input w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-white font-mono text-right focus:border-emerald-500 focus:outline-none" />
-          <span class="text-xs text-slate-400">%</span>
-        </div>
-      </div>
-
-      <!-- Contenedor Dinámico de Subproductos -->
-      <div id="subproductsContainer" class="space-y-2.5">
-        <!-- Renderizado dinámicamente con JS -->
-      </div>
-
-      <!-- Botón para Agregar Nuevo Subproducto -->
-      <button onclick="addNewSubproduct()" class="w-full py-2 border-2 border-dashed border-slate-700 hover:border-emerald-500/70 hover:bg-emerald-950/20 text-slate-300 hover:text-emerald-300 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition-all">
-        <span>➕</span>
-        <span>Agregar otro subproducto</span>
+    <!-- PESTAÑAS DE NAVEGACIÓN MÓVIL -->
+    <div class="flex md:hidden justify-between bg-slate-900 p-1.5 rounded-xl border border-slate-800 text-xs font-semibold">
+      <button onclick="scrollToOption(0)" id="tab_btn_0" class="flex-1 py-2 rounded-lg transition-all text-center bg-emerald-600 text-white shadow-md">
+        Opción A
       </button>
+      <button onclick="scrollToOption(1)" id="tab_btn_1" class="flex-1 py-2 rounded-lg transition-all text-center text-slate-400 hover:text-white">
+        Opción B
+      </button>
+      <button onclick="scrollToOption(2)" id="tab_btn_2" class="flex-1 py-2 rounded-lg transition-all text-center text-slate-400 hover:text-white">
+        Opción C
+      </button>
+    </div>
 
-      <div class="flex justify-between items-center pt-2 px-1 text-xs font-semibold">
-        <span class="text-slate-400">Recuperación total por Ton:</span>
-        <span id="resTotalRecovery" class="text-emerald-400 font-mono">-$0.00</span>
-      </div>
-    </section>
+    <!-- CONTENEDOR DE LAS 3 VENTANAS DE COTIZACIÓN -->
+    <div id="optionsContainer" class="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto snap-x-mandatory no-scrollbar pb-4">
 
-    <!-- 3. Margen Comercial (0% a 10%) -->
-    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-md space-y-3">
-      <div class="flex justify-between items-center">
-        <h3 class="text-xs uppercase tracking-wider font-bold text-slate-400">3. Margen Comercial</h3>
-        <span id="sliderValue" class="text-sm font-bold text-emerald-400 font-mono">5.0%</span>
-      </div>
+      <!-- GENÉRICO PARA COLUMNAS A, B, C (RENDERIZADO DINÁMICO VIA JS) -->
+      <div id="opt_col_0" class="snap-center min-w-[88vw] sm:min-w-[350px] md:min-w-0 flex-1 bg-slate-900/90 border border-emerald-500/40 rounded-2xl p-4 shadow-xl space-y-4"></div>
+      <div id="opt_col_1" class="snap-center min-w-[88vw] sm:min-w-[350px] md:min-w-0 flex-1 bg-slate-900/90 border border-blue-500/40 rounded-2xl p-4 shadow-xl space-y-4"></div>
+      <div id="opt_col_2" class="snap-center min-w-[88vw] sm:min-w-[350px] md:min-w-0 flex-1 bg-slate-900/90 border border-amber-500/40 rounded-2xl p-4 shadow-xl space-y-4"></div>
 
-      <input type="range" id="inMarginSlider" min="0" max="10" step="0.25" value="5" class="calc-input w-full accent-emerald-500 h-2 bg-slate-950 rounded-lg cursor-pointer" />
-
-      <div class="flex justify-between text-[11px] text-slate-500 font-mono px-1">
-        <span>0%</span>
-        <span>2.5%</span>
-        <span>5.0%</span>
-        <span>7.5%</span>
-        <span>10%</span>
-      </div>
-    </section>
+    </div>
 
   </main>
 
-  <!-- Lógica en JavaScript -->
-  <script>
-    const STORAGE_KEY_SETTINGS = 'frijol_app_settings_v4';
-    const STORAGE_KEY_SUBPRODUCTS = 'frijol_app_subproducts_v4';
+  <!-- MODAL DE HISTORIAL Y ANÁLISIS DE FLUCTUACIONES -->
+  <div id="historyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 md:p-6">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-950 p-4 border-b border-slate-800 flex justify-between items-center">
+        <div>
+          <h3 class="font-bold text-base md:text-lg text-emerald-400 flex items-center space-x-2">
+            <span>📜 Historial de Cotizaciones & Registro de Precios</span>
+          </h3>
+          <p class="text-xs text-slate-400">Analiza las fluctuaciones de costos por proveedor y variedad.</p>
+        </div>
+        <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-white text-lg font-bold px-2 py-1">✕</button>
+      </div>
 
-    const DEFAULT_SETTINGS = {
-      rawPrice: 25.00,
-      maquila: 0.60,
-      freight: 0.40,
-      packBag: 20.00,
-      mermaPct: 1.0,
-      marginPct: 5.0
+      <!-- Modal Body -->
+      <div class="p-4 overflow-y-auto space-y-4 flex-1">
+        
+        <!-- Filtro Rápido -->
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="text-slate-400">Filtrar Producto:</span>
+            <select id="filterHistoryProduct" onchange="renderHistoryTable()" class="bg-slate-900 border border-slate-700 text-white rounded-lg px-2 py-1">
+              <option value="todos">Todos los productos</option>
+              <option value="frijol">Frijol</option>
+              <option value="arroz">Arroz</option>
+              <option value="lenteja">Lenteja</option>
+              <option value="garbanzo">Garbanzo</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+          <button onclick="clearHistory()" class="text-red-400 hover:text-red-300 font-medium text-xs">Vaciar Historial</button>
+        </div>
+
+        <!-- Tabla Histórica -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px]">
+              <tr>
+                <th class="p-2.5">Fecha</th>
+                <th class="p-2.5">Producto / Variedad</th>
+                <th class="p-2.5">Proveedor / Productor</th>
+                <th class="p-2.5 text-right">M. Prima</th>
+                <th class="p-2.5 text-right">Costo / kg Limpio</th>
+                <th class="p-2.5 text-right">Costo / Bulto (25kg)</th>
+                <th class="p-2.5 text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody" class="divide-y divide-slate-800/70 bg-slate-900">
+              <!-- Renderizado JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-950 p-3 border-t border-slate-800 flex justify-end">
+        <button onclick="toggleHistoryModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-1.5 rounded-lg text-xs font-semibold">Cerrar</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY_MULTI = 'granos_multi_quote_v3';
+    const STORAGE_KEY_HISTORY = 'granos_history_records_v1';
+
+    const VARIETIES_MAP = {
+      frijol: ['Reyna', 'Higuera', 'Pinto', 'Negro', 'Azufrado', 'Otro'],
+      arroz: ['Largo/Súper', 'Mediano', 'Integral', 'Otro'],
+      lenteja: ['Lentejón', 'Verde', 'Café', 'Otra'],
+      garbanzo: ['Blanco Sinaloa', 'Garbanzo Calibre 40/42', 'Otro'],
+      otro: ['Estándar', 'Especial']
     };
 
-    const DEFAULT_SUBPRODUCTS = [
-      { id: 'sub_1', name: 'Granillo', pct: 3.0, price: 6.00 },
-      { id: 'sub_2', name: 'Mochote', pct: 3.0, price: 6.00 },
-      { id: 'sub_3', name: 'Daño de Ojo', pct: 1.5, price: 14.00 }
+    const DEFAULT_OPTIONS = [
+      {
+        name: 'Opción A',
+        productType: 'frijol',
+        variety: 'Reyna',
+        provider: 'Productor Juan José Ríos',
+        date: new Date().toISOString().split('T')[0],
+        rawPrice: 25.00, maquila: 0.60, freight: 0.40, packBag: 10.00, mermaPct: 1.0, marginPct: 5.0,
+        subproducts: [
+          { id: 'sub_a1', name: 'Granillo', pct: 3.0, price: 6.00 },
+          { id: 'sub_a2', name: 'Mochote', pct: 3.0, price: 6.00 }
+        ]
+      },
+      {
+        name: 'Opción B',
+        productType: 'frijol',
+        variety: 'Higuera',
+        provider: 'Agrícola Los Mochis',
+        date: new Date().toISOString().split('T')[0],
+        rawPrice: 24.50, maquila: 0.60, freight: 0.50, packBag: 10.00, mermaPct: 1.2, marginPct: 5.0,
+        subproducts: [
+          { id: 'sub_b1', name: 'Granillo', pct: 3.5, price: 6.00 }
+        ]
+      },
+      {
+        name: 'Opción C',
+        productType: 'frijol',
+        variety: 'Pinto',
+        provider: 'Bodega Guasave',
+        date: new Date().toISOString().split('T')[0],
+        rawPrice: 26.00, maquila: 0.50, freight: 0.35, packBag: 10.00, mermaPct: 0.8, marginPct: 5.0,
+        subproducts: [
+          { id: 'sub_c1', name: 'Granillo', pct: 2.5, price: 6.50 }
+        ]
+      }
     ];
 
-    let subproducts = [];
+    let optionsData = [];
+    let historyRecords = [];
+    let currentProduct = 'frijol';
 
-    function loadState() {
-      const savedSettings = localStorage.getItem(STORAGE_KEY_SETTINGS);
-      const settings = savedSettings ? JSON.parse(savedSettings) : DEFAULT_SETTINGS;
+    function initApp() {
+      const savedOptions = localStorage.getItem(STORAGE_KEY_MULTI);
+      optionsData = savedOptions ? JSON.parse(savedOptions) : JSON.parse(JSON.stringify(DEFAULT_OPTIONS));
 
-      document.getElementById('inRawPrice').value = settings.rawPrice;
-      document.getElementById('inMaquila').value = settings.maquila;
-      document.getElementById('inFreight').value = settings.freight;
-      document.getElementById('inPackBag').value = settings.packBag;
-      document.getElementById('inMermaPct').value = settings.mermaPct;
-      document.getElementById('inMarginSlider').value = settings.marginPct !== undefined ? settings.marginPct : 5.0;
+      const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
+      historyRecords = savedHistory ? JSON.parse(savedHistory) : [];
 
-      const savedSubs = localStorage.getItem(STORAGE_KEY_SUBPRODUCTS);
-      subproducts = savedSubs ? JSON.parse(savedSubs) : JSON.parse(JSON.stringify(DEFAULT_SUBPRODUCTS));
-
-      renderSubproducts();
+      renderColumns();
       recalculate();
     }
 
-    function saveState() {
-      const settings = {
-        rawPrice: parseFloat(document.getElementById('inRawPrice').value) || 0,
-        maquila: parseFloat(document.getElementById('inMaquila').value) || 0,
-        freight: parseFloat(document.getElementById('inFreight').value) || 0,
-        packBag: parseFloat(document.getElementById('inPackBag').value) || 0,
-        mermaPct: parseFloat(document.getElementById('inMermaPct').value) || 0,
-        marginPct: parseFloat(document.getElementById('inMarginSlider').value) || 0
-      };
-      localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
-      localStorage.setItem(STORAGE_KEY_SUBPRODUCTS, JSON.stringify(subproducts));
+    function changeProductType(product) {
+      currentProduct = product;
+      document.getElementById('activeProductBadge').innerText = product.toUpperCase();
+      
+      for (let i = 0; i < 3; i++) {
+        optionsData[i].productType = product;
+        optionsData[i].variety = VARIETIES_MAP[product][0];
+      }
+
+      renderColumns();
+      recalculate();
     }
 
-    function renderSubproducts() {
-      const container = document.getElementById('subproductsContainer');
-      container.innerHTML = '';
+    function renderColumns() {
+      const themeColors = [
+        { border: 'border-emerald-500/40', text: 'text-emerald-400', badge: 'bg-emerald-500/20 text-emerald-300', btn: 'hover:border-emerald-500 text-emerald-400' },
+        { border: 'border-blue-500/40', text: 'text-blue-400', badge: 'bg-blue-500/20 text-blue-300', btn: 'hover:border-blue-500 text-blue-400' },
+        { border: 'border-amber-500/40', text: 'text-amber-400', badge: 'bg-amber-500/20 text-amber-300', btn: 'hover:border-amber-500 text-amber-400' }
+      ];
 
-      subproducts.forEach((sub, index) => {
-        const item = document.createElement('div');
-        item.className = 'bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/80 space-y-2';
-        item.innerHTML = `
-          <div class="flex justify-between items-center">
-            <input type="text" value="${sub.name}" onchange="updateSubName(${index}, this.value)" 
-              class="bg-transparent text-xs font-medium text-slate-200 focus:text-emerald-300 focus:outline-none border-b border-transparent focus:border-emerald-500 w-2/3" placeholder="Nombre subproducto" />
-            <div class="flex items-center space-x-2">
-              <span id="sub_inc_${sub.id}" class="text-[11px] text-emerald-400 font-mono">+$0.00</span>
-              <button onclick="removeSubproduct(${index})" class="text-slate-500 hover:text-red-400 text-xs px-1" title="Eliminar">✕</button>
+      for (let i = 0; i < 3; i++) {
+        const col = document.getElementById(`opt_col_${i}`);
+        const theme = themeColors[i];
+        const opt = optionsData[i];
+
+        const varietyOptionsHtml = VARIETIES_MAP[currentProduct].map(v => 
+          `<option value="${v}" ${opt.variety === v ? 'selected' : ''}>${v}</option>`
+        ).join('');
+
+        col.innerHTML = `
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <input type="text" id="opt_name_${i}" value="${opt.name}" onchange="updateOptField(${i}, 'name', this.value)" class="bg-transparent font-bold ${theme.text} text-sm focus:outline-none font-sans" />
+            <button onclick="saveToHistory(${i})" class="text-[10px] bg-slate-800 hover:bg-emerald-700 text-emerald-300 border border-emerald-600/40 px-2 py-1 rounded-lg font-semibold transition-all flex items-center space-x-1">
+              <span>💾 Guardar en Historial</span>
+            </button>
+          </div>
+
+          <!-- Metadata Registro -->
+          <div class="space-y-2 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 text-xs">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">Fecha</label>
+                <input type="date" value="${opt.date || new Date().toISOString().split('T')[0]}" onchange="updateOptField(${i}, 'date', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-[11px]" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">Variedad</label>
+                <select onchange="updateOptField(${i}, 'variety', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-[11px]">
+                  ${varietyOptionsHtml}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Agricultor / Productor / Proveedor</label>
+              <input type="text" placeholder="Ej. Don Mario - JJ Ríos" value="${opt.provider || ''}" onchange="updateOptField(${i}, 'provider', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-[11px]" />
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-2">
+
+          <!-- Inputs Operación -->
+          <div class="space-y-2">
+            <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Entrada y Operación</h4>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="text-[10px] text-slate-400 block">Mat. Prima ($/kg)</label>
+                <input type="number" step="0.1" id="in_rawPrice_${i}" value="${opt.rawPrice}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block">Maquila ($/kg)</label>
+                <input type="number" step="0.05" id="in_maquila_${i}" value="${opt.maquila}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block">Flete ($/kg)</label>
+                <input type="number" step="0.05" id="in_freight_${i}" value="${opt.freight}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block">Envasado ($/bulto 25k)</label>
+                <input type="number" step="0.5" id="in_packBag_${i}" value="${opt.packBag}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-white font-mono" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Subproductos -->
+          <div class="space-y-2">
+            <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Merma y Subproductos</h4>
+            <div class="grid grid-cols-2 gap-2 items-center bg-slate-950/50 p-2 rounded-lg border border-slate-800 text-xs">
+              <span class="text-[11px] text-red-400 font-medium">Merma (Sin valor)</span>
+              <div class="flex items-center space-x-1">
+                <input type="number" step="0.1" id="in_mermaPct_${i}" value="${opt.mermaPct}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-right text-white font-mono" />
+                <span class="text-[10px] text-slate-400">%</span>
+              </div>
+            </div>
+
+            <div id="subContainer_${i}" class="space-y-2"></div>
+
+            <button onclick="addNewSubproduct(${i})" class="w-full py-1.5 border border-dashed border-slate-700 hover:border-slate-500 text-slate-400 ${theme.btn} rounded-lg text-xs font-medium flex items-center justify-center space-x-1">
+              <span>➕ Agregar Subproducto</span>
+            </button>
+          </div>
+
+          <!-- Margen -->
+          <div class="space-y-2 pt-2 border-t border-slate-800">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-medium text-slate-300">Margen Comercial:</span>
+              <span id="marginLabel_${i}" class="font-bold ${theme.text} font-mono">${opt.marginPct}%</span>
+            </div>
+            <input type="range" id="in_marginSlider_${i}" value="${opt.marginPct}" min="0" max="10" step="0.25" oninput="recalculate()" class="w-full accent-emerald-500 h-2 bg-slate-950 rounded-lg cursor-pointer" />
+          </div>
+        `;
+
+        renderSubproductsForOpt(i);
+      }
+    }
+
+    function renderSubproductsForOpt(optIdx) {
+      const container = document.getElementById(`subContainer_${optIdx}`);
+      if (!container) return;
+      container.innerHTML = '';
+
+      optionsData[optIdx].subproducts.forEach((sub, subIdx) => {
+        const div = document.createElement('div');
+        div.className = 'bg-slate-950/60 p-2 rounded-lg border border-slate-800 space-y-1';
+        div.innerHTML = `
+          <div class="flex justify-between items-center text-xs">
+            <input type="text" value="${sub.name}" onchange="updateSubName(${optIdx}, ${subIdx}, this.value)" 
+              class="bg-transparent text-slate-200 font-medium focus:outline-none border-b border-transparent focus:border-slate-500 w-2/3 text-[11px]" />
+            <button onclick="removeSubproduct(${optIdx}, ${subIdx})" class="text-slate-500 hover:text-red-400 text-xs px-1">✕</button>
+          </div>
+          <div class="grid grid-cols-2 gap-1 text-xs">
             <div class="flex items-center space-x-1">
-              <input type="number" step="0.1" value="${sub.pct}" oninput="updateSubPct(${index}, this.value)" 
-                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white font-mono text-right focus:border-emerald-500 focus:outline-none" />
-              <span class="text-xs text-slate-400">%</span>
+              <input type="number" step="0.1" value="${sub.pct}" oninput="updateSubPct(${optIdx}, ${subIdx}, this.value)" 
+                class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-right text-white font-mono text-[11px]" />
+              <span class="text-[10px] text-slate-400">%</span>
             </div>
             <div class="flex items-center space-x-1">
-              <span class="text-xs text-slate-400">$</span>
-              <input type="number" step="0.5" value="${sub.price}" oninput="updateSubPrice(${index}, this.value)" 
-                class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-xs text-white font-mono text-right focus:border-emerald-500 focus:outline-none" />
-              <span class="text-[10px] text-slate-400">/kg</span>
+              <span class="text-[10px] text-slate-400">$</span>
+              <input type="number" step="0.5" value="${sub.price}" oninput="updateSubPrice(${optIdx}, ${subIdx}, this.value)" 
+                class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-right text-white font-mono text-[11px]" />
+              <span class="text-[9px] text-slate-400">/k</span>
             </div>
           </div>
         `;
-        container.appendChild(item);
+        container.appendChild(div);
       });
     }
 
-    function addNewSubproduct() {
-      const newId = 'sub_' + Date.now();
-      subproducts.push({
-        id: newId,
-        name: `Subproducto ${subproducts.length + 1}`,
+    function updateOptField(optIdx, field, val) {
+      optionsData[optIdx][field] = val;
+      saveState();
+    }
+
+    function addNewSubproduct(optIdx) {
+      optionsData[optIdx].subproducts.push({
+        id: 'sub_' + Date.now(),
+        name: `Subprod. ${optionsData[optIdx].subproducts.length + 1}`,
         pct: 1.0,
         price: 5.00
       });
       saveState();
-      renderSubproducts();
+      renderSubproductsForOpt(optIdx);
       recalculate();
     }
 
-    function removeSubproduct(index) {
-      subproducts.splice(index, 1);
+    function removeSubproduct(optIdx, subIdx) {
+      optionsData[optIdx].subproducts.splice(subIdx, 1);
       saveState();
-      renderSubproducts();
+      renderSubproductsForOpt(optIdx);
       recalculate();
     }
 
-    function updateSubName(index, val) {
-      subproducts[index].name = val;
+    function updateSubName(optIdx, subIdx, val) {
+      optionsData[optIdx].subproducts[subIdx].name = val;
       saveState();
     }
 
-    function updateSubPct(index, val) {
-      subproducts[index].pct = parseFloat(val) || 0;
-      saveState();
-      recalculate();
-    }
-
-    function updateSubPrice(index, val) {
-      subproducts[index].price = parseFloat(val) || 0;
+    function updateSubPct(optIdx, subIdx, val) {
+      optionsData[optIdx].subproducts[subIdx].pct = parseFloat(val) || 0;
       saveState();
       recalculate();
     }
 
-    function resetDefaults() {
-      if (confirm('¿Restablecer todos los valores originales?')) {
-        localStorage.removeItem(STORAGE_KEY_SETTINGS);
-        localStorage.removeItem(STORAGE_KEY_SUBPRODUCTS);
-        loadState();
-      }
+    function updateSubPrice(optIdx, subIdx, val) {
+      optionsData[optIdx].subproducts[subIdx].price = parseFloat(val) || 0;
+      saveState();
+      recalculate();
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY_MULTI, JSON.stringify(optionsData));
     }
 
     function recalculate() {
-      const rawPrice = parseFloat(document.getElementById('inRawPrice').value) || 0;
-      const maquila = parseFloat(document.getElementById('inMaquila').value) || 0;
-      const freight = parseFloat(document.getElementById('inFreight').value) || 0;
-      const packBag = parseFloat(document.getElementById('inPackBag').value) || 0;
-      const mermaPct = parseFloat(document.getElementById('inMermaPct').value) || 0;
-      const marginVal = parseFloat(document.getElementById('inMarginSlider').value) || 0;
-      const marginPct = marginVal / 100;
+      const keys = ['A', 'B', 'C'];
 
-      const formattedMargin = Number.isInteger(marginVal) ? `${marginVal}%` : `${marginVal.toFixed(2)}%`;
-      document.getElementById('sliderValue').innerText = formattedMargin;
-      document.getElementById('resMarginLabel').innerText = `Margen: ${formattedMargin}`;
+      for (let i = 0; i < 3; i++) {
+        const rawPrice = parseFloat(document.getElementById(`in_rawPrice_${i}`).value) || 0;
+        const maquila = parseFloat(document.getElementById(`in_maquila_${i}`).value) || 0;
+        const freight = parseFloat(document.getElementById(`in_freight_${i}`).value) || 0;
+        const packBag = parseFloat(document.getElementById(`in_packBag_${i}`).value) || 0;
+        const mermaPct = parseFloat(document.getElementById(`in_mermaPct_${i}`).value) || 0;
+        const marginVal = parseFloat(document.getElementById(`in_marginSlider_${i}`).value) || 0;
+        const marginPct = marginVal / 100;
 
-      const batchKg = 1000;
-      let totalSubPct = mermaPct;
-      let totalRecovery = 0;
+        optionsData[i].rawPrice = rawPrice;
+        optionsData[i].maquila = maquila;
+        optionsData[i].freight = freight;
+        optionsData[i].packBag = packBag;
+        optionsData[i].mermaPct = mermaPct;
+        optionsData[i].marginPct = marginVal;
 
-      subproducts.forEach(sub => {
-        totalSubPct += sub.pct;
-        const inc = (batchKg * (sub.pct / 100)) * sub.price;
-        totalRecovery += inc;
-        const labelEl = document.getElementById(`sub_inc_${sub.id}`);
-        if (labelEl) labelEl.innerText = `+$${inc.toFixed(2)}`;
-      });
+        const formattedMargin = Number.isInteger(marginVal) ? `${marginVal}%` : `${marginVal.toFixed(2)}%`;
+        const labelEl = document.getElementById(`marginLabel_${i}`);
+        if (labelEl) labelEl.innerText = formattedMargin;
 
-      const cleanYieldPct = Math.max(0, 100 - totalSubPct);
-      const cleanKg = batchKg * (cleanYieldPct / 100);
+        const batchKg = 1000;
+        let totalSubPct = mermaPct;
+        let totalRecovery = 0;
 
-      document.getElementById('badgeYield').innerText = `${cleanYieldPct.toFixed(1)}% limpio (${cleanKg.toFixed(0)} kg)`;
-      document.getElementById('resTotalRecovery').innerText = `-$${totalRecovery.toFixed(2)}`;
+        optionsData[i].subproducts.forEach(sub => {
+          totalSubPct += sub.pct;
+          totalRecovery += (batchKg * (sub.pct / 100)) * sub.price;
+        });
 
-      const costRaw = batchKg * rawPrice;
-      const costMaquila = batchKg * maquila;
-      const costFreight = batchKg * freight;
-      const packPerKg = packBag / 50;
-      const totalPackaging = cleanKg * packPerKg;
+        const cleanYieldPct = Math.max(0, 100 - totalSubPct);
+        const cleanKg = batchKg * (cleanYieldPct / 100);
 
-      const grossCost = costRaw + costMaquila + costFreight + totalPackaging;
-      const netCost = grossCost - totalRecovery;
+        const costRaw = batchKg * rawPrice;
+        const costMaquila = batchKg * maquila;
+        const costFreight = batchKg * freight;
+        
+        const packPerKg = packBag / 25;
+        const totalPackaging = cleanKg * packPerKg;
 
-      const costPerKgClean = cleanKg > 0 ? (netCost / cleanKg) : 0;
-      const costPerBag50kg = costPerKgClean * 50;
+        const grossCost = costRaw + costMaquila + costFreight + totalPackaging;
+        const netCost = grossCost - totalRecovery;
 
-      document.getElementById('resCostKg').innerText = `$${costPerKgClean.toFixed(2)}`;
-      document.getElementById('resCostBag').innerText = `$${costPerBag50kg.toFixed(2)}`;
+        const costPerKgClean = cleanKg > 0 ? (netCost / cleanKg) : 0;
+        const costPerBag25kg = costPerKgClean * 25;
 
-      const pricePerKg = costPerKgClean * (1 + marginPct);
-      const pricePerBag = pricePerKg * 50;
-      const profitPerKg = pricePerKg - costPerKgClean;
-      const profitPerTon = profitPerKg * 1000;
+        const pricePerKg = costPerKgClean * (1 + marginPct);
+        const pricePerBag25kg = pricePerKg * 25;
+        const profitPerKg = pricePerKg - costPerKgClean;
+        const profitPerTon = profitPerKg * 1000;
 
-      document.getElementById('resPriceKg').innerHTML = `$${pricePerKg.toFixed(2)} <span class="text-xs text-slate-400">/ kg</span>`;
-      document.getElementById('resPriceBag').innerHTML = `$${pricePerBag.toFixed(2)} <span class="text-xs text-slate-400">/ bulto</span>`;
-      document.getElementById('resProfitTon').innerText = `+$${profitPerTon.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        optionsData[i].calculatedCostKg = costPerKgClean;
+        optionsData[i].calculatedCostBag = costPerBag25kg;
+
+        const key = keys[i];
+        document.getElementById(`summary_raw_${key}`).innerHTML = `$${rawPrice.toFixed(2)} <span class="text-[10px] text-slate-400 font-normal">(${cleanYieldPct.toFixed(1)}%)</span>`;
+        document.getElementById(`summary_costKg_${key}`).innerText = `$${costPerKgClean.toFixed(2)}`;
+        document.getElementById(`summary_costBag_${key}`).innerText = `$${costPerBag25kg.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById(`summary_priceBag_${key}`).innerText = `$${pricePerBag25kg.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        document.getElementById(`summary_profitTon_${key}`).innerText = `+$${profitPerTon.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      }
 
       saveState();
     }
 
-    document.querySelectorAll('.calc-input').forEach(input => {
-      input.addEventListener('input', recalculate);
-    });
+    // Lógica Historial
+    function saveToHistory(optIdx) {
+      const opt = optionsData[optIdx];
+      const record = {
+        id: 'rec_' + Date.now(),
+        date: opt.date || new Date().toISOString().split('T')[0],
+        productType: currentProduct,
+        variety: opt.variety || 'General',
+        provider: opt.provider || 'Sin Especificar',
+        rawPrice: opt.rawPrice,
+        costKg: opt.calculatedCostKg || 0,
+        costBag: opt.calculatedCostBag || 0
+      };
 
-    // Registrar Service Worker
+      historyRecords.unshift(record);
+      localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
+      alert(` Cotización guardada en Historial:\n${record.productType.toUpperCase()} (${record.variety}) - ${record.provider}\nCosto Limpio: $${record.costKg.toFixed(2)} / kg`);
+    }
+
+    function toggleHistoryModal() {
+      const modal = document.getElementById('historyModal');
+      if (modal.classList.contains('hidden')) {
+        renderHistoryTable();
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function renderHistoryTable() {
+      const tbody = document.getElementById('historyTableBody');
+      const filter = document.getElementById('filterHistoryProduct').value;
+
+      tbody.innerHTML = '';
+
+      const filtered = historyRecords.filter(r => filter === 'todos' || r.productType === filter);
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500 italic">No hay registros guardados para este filtro.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(rec => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/50 transition-colors';
+        tr.innerHTML = `
+          <td class="p-2.5 text-slate-300 font-sans">${rec.date}</td>
+          <td class="p-2.5"><span class="uppercase font-bold text-emerald-400">${rec.productType}</span> <span class="text-slate-400">(${rec.variety})</span></td>
+          <td class="p-2.5 text-slate-200 font-sans">${rec.provider}</td>
+          <td class="p-2.5 text-right font-bold text-white">$${rec.rawPrice.toFixed(2)}</td>
+          <td class="p-2.5 text-right font-bold text-emerald-300">$${rec.costKg.toFixed(2)}</td>
+          <td class="p-2.5 text-right text-slate-300">$${rec.costBag.toFixed(2)}</td>
+          <td class="p-2.5 text-center">
+            <button onclick="deleteHistoryRecord('${rec.id}')" class="text-red-400 hover:text-red-300 font-bold px-1">✕</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function deleteHistoryRecord(id) {
+      historyRecords = historyRecords.filter(r => r.id !== id);
+      localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
+      renderHistoryTable();
+    }
+
+    function clearHistory() {
+      if (confirm('¿Vaciar todo el historial guardado?')) {
+        historyRecords = [];
+        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
+        renderHistoryTable();
+      }
+    }
+
+    function resetAllDefaults() {
+      if (confirm('¿Restablecer las cotizaciones iniciales?')) {
+        localStorage.removeItem(STORAGE_KEY_MULTI);
+        initApp();
+      }
+    }
+
+    function scrollToOption(optIdx) {
+      const col = document.getElementById(`opt_col_${optIdx}`);
+      if (col) {
+        col.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+
+      for (let i = 0; i < 3; i++) {
+        const btn = document.getElementById(`tab_btn_${i}`);
+        if (i === optIdx) {
+          btn.className = 'flex-1 py-2 rounded-lg transition-all text-center bg-emerald-600 text-white shadow-md font-bold';
+        } else {
+          btn.className = 'flex-1 py-2 rounded-lg transition-all text-center text-slate-400 hover:text-white font-normal';
+        }
+      }
+    }
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
 
-    window.addEventListener('DOMContentLoaded', loadState);
+    window.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
