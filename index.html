@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orgánicos Milenarios | Sistema Integral de Costos & Cotización</title>
+  <title>Orgánicos Milenarios | Sistema Integral de Cotizaciones</title>
   
   <!-- Tailwind CSS & Chart.js -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,7 +15,36 @@
     input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
 
-    /* Estilos profesionales para exportación a PDF vía impresión nativa */
+    /* Scroll lateral suave y encaje en móviles */
+    .mobile-scroll-x {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      gap: 1rem;
+      padding-bottom: 0.75rem;
+    }
+    .mobile-scroll-x > div {
+      scroll-snap-align: center;
+      flex: 0 0 88%;
+    }
+    @media (min-width: 768px) {
+      .mobile-scroll-x {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        overflow-x: visible;
+        padding-bottom: 0;
+      }
+      .mobile-scroll-x > div {
+        flex: none;
+      }
+    }
+
+    /* Ocultar barra de scroll estética */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Estilos para impresión nativa / PDF */
     @media print {
       body * { visibility: hidden; }
       #pdfPrintContainer, #pdfPrintContainer * { visibility: visible; }
@@ -43,70 +72,97 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg text-emerald-100 leading-tight">Orgánicos Milenarios SA de CV</h1>
-        <p class="text-[10px] md:text-xs text-emerald-300 uppercase tracking-widest font-semibold">Análisis Financiero, Costos & Cotizador</p>
+        <p class="text-[10px] md:text-xs text-emerald-300 uppercase tracking-widest font-semibold">Análisis Financiero & Cotizador</p>
       </div>
     </div>
     <div class="flex items-center space-x-2">
       <button onclick="exportDataJSON()" class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-600/40 px-3 py-1.5 rounded-lg font-semibold flex items-center space-x-1 shadow transition-all">
-        <span>📤 Exportar Costos</span>
+        <span>📤 Exportar</span>
       </button>
       <label class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-600/40 px-3 py-1.5 rounded-lg font-semibold cursor-pointer flex items-center space-x-1 shadow transition-all">
         <span>📥 Importar</span>
         <input type="file" id="importFileInput" accept=".json" onchange="importDataJSON(event)" class="hidden" />
       </label>
       <button onclick="toggleModal('historyModal')" class="text-xs bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500/50 px-3 py-1.5 rounded-lg font-semibold flex items-center space-x-1 shadow transition-all">
-        <span>📜 Historial & Gráficas</span>
+        <span>📜 Historial</span>
       </button>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto p-3 md:p-6 space-y-8 no-print">
+  <main class="max-w-7xl mx-auto p-3 md:p-6 space-y-6 no-print">
 
-    <!-- ==================== ETAPA 1: COMPARADOR ANALÍTICO DE COSTOS ==================== -->
-    <section class="space-y-4">
-      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg space-y-3">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div>
-            <h2 class="text-base font-bold text-emerald-400">PASO 1: Análisis Analítico Comparativo de Costos</h2>
-            <p class="text-xs text-slate-400">Evalúa materias primas, mermas, subproductos y márgenes de utilidad deseados.</p>
-          </div>
-          <div class="flex flex-wrap items-center gap-3">
-            <div>
-              <label class="text-[10px] text-slate-400 block uppercase font-bold">Tipo de Grano</label>
-              <select id="globalProductType" onchange="updateCalculations()" class="bg-slate-950 border border-emerald-600/50 text-emerald-300 font-bold text-xs rounded-xl px-3 py-1.5 focus:outline-none">
-                <option value="Frijol">🫘 Frijol</option>
-                <option value="Garbanzo">🟡 Garbanzo</option>
-                <option value="Maíz">🌽 Maíz</option>
-                <option value="Trigo">🌾 Trigo</option>
-                <option value="Otro">📦 Otro Grano</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-[10px] text-slate-400 block uppercase font-bold">Variedad / Calidad</label>
-              <input type="text" id="globalVariety" value="Pinto Saltillo" oninput="updateCalculations()" class="bg-slate-950 border border-slate-700 text-xs text-white rounded-xl px-3 py-1.5 w-36 font-bold" />
-            </div>
-            <div>
-              <label class="text-[10px] text-slate-400 block uppercase font-bold">Fecha Análisis</label>
-              <input type="date" id="globalDate" class="bg-slate-950 border border-slate-700 text-xs text-white rounded-xl px-3 py-1.5" />
-            </div>
-          </div>
+    <!-- ==================== PANEL RESUMEN SUPERIOR (KPIs) ==================== -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-3 no-print">
+      <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl shadow-lg">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Importe Cotización</span>
+        <div id="kpiTotalQuote" class="text-base md:text-lg font-black text-emerald-400 font-mono">$0.00</div>
+        <span class="text-[9px] text-slate-500">Monto total con IVA</span>
+      </div>
+      <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl shadow-lg">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Volumen Activo</span>
+        <div id="kpiTotalTons" class="text-base md:text-lg font-black text-emerald-300 font-mono">0 Ton</div>
+        <span id="kpiPackaging" class="text-[9px] text-slate-500">Bulto 25 kg</span>
+      </div>
+      <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl shadow-lg">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Utilidad Estimada</span>
+        <div id="kpiTotalProfit" class="text-base md:text-lg font-black text-amber-400 font-mono">+$0.00</div>
+        <span id="kpiProfitPct" class="text-[9px] text-emerald-400 font-bold">0.0% Margen</span>
+      </div>
+      <div class="bg-slate-900/90 border border-emerald-600/40 p-3 rounded-2xl shadow-lg bg-emerald-950/20">
+        <span class="text-[10px] uppercase font-bold text-emerald-400 block mb-0.5">Opción Seleccionada</span>
+        <div id="kpiActiveOpt" class="text-base md:text-lg font-black text-white truncate">Opción A</div>
+        <span id="kpiActiveGrain" class="text-[9px] text-emerald-300 font-mono truncate block">Frijol Pinto Saltillo</span>
+      </div>
+    </section>
+
+    <!-- ==================== ETAPA 1: COMPARADOR ANALÍTICO CON SCROLL LATERAL EN CELULAR ==================== -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between px-1">
+        <div>
+          <h2 class="text-sm md:text-base font-bold text-emerald-400">PASO 1: Comparador Analítico de Costos</h2>
+          <p class="text-[11px] text-slate-400">Desliza horizontalmente en celular para evaluar las distintas opciones de granos.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <label class="text-[10px] text-slate-400 uppercase font-bold">Fecha:</label>
+          <input type="date" id="globalDate" class="bg-slate-900 border border-slate-800 text-xs text-white rounded-lg px-2 py-1 font-mono" />
         </div>
       </div>
 
-      <!-- MATRIZ COMPARATIVA A, B, C -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Tarjeta de Opción A, B, C generadas mediante iteración -->
+      <!-- CONTENEDOR DE OPCIONES CON SCROLL SNAP EN CELULARES -->
+      <div class="mobile-scroll-x no-scrollbar">
         <script>
           const optionKeys = ['A', 'B', 'C'];
           const defaultProviders = ['Bodega Guasave', 'Productor Ahome', 'Distribuidora del Valle'];
+          const defaultGrains = ['Frijol', 'Garbanzo', 'Maíz'];
+          const defaultVarieties = ['Pinto Saltillo', 'Blanco Sinaloa', 'Blanco Harinero'];
           const defaultPrices = [22000, 21500, 23000];
           const defaultYields = [92, 88, 95];
-          
+
           document.write(optionKeys.map((key, idx) => `
-            <div id="card_opt_${key}" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4 shadow-xl">
+            <div id="card_opt_${key}" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl transition-all">
+              
+              <!-- Cabecera Tarjeta -->
               <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <span class="font-bold text-sm text-emerald-400 uppercase">Opción ${key}</span>
-                <input type="text" id="prov_${key}" value="${defaultProviders[idx]}" oninput="updateCalculations()" placeholder="Proveedor" class="bg-slate-950 border border-slate-800 text-xs text-slate-200 px-2 py-1 rounded text-right font-bold w-36" />
+                <span class="font-bold text-xs text-emerald-400 uppercase tracking-wider">Opción ${key}</span>
+                <input type="text" id="prov_${key}" value="${defaultProviders[idx]}" oninput="updateCalculations()" placeholder="Proveedor" class="bg-slate-950 border border-slate-800 text-xs text-slate-200 px-2 py-1 rounded text-right font-bold w-32" />
+              </div>
+
+              <!-- Tipo de Grano y Variedad Específicos por Opción -->
+              <div class="grid grid-cols-2 gap-2 bg-slate-950/80 p-2 rounded-xl border border-slate-800/80">
+                <div>
+                  <label class="text-[9px] text-slate-400 block uppercase font-bold">Tipo Grano</label>
+                  <select id="grain_${key}" onchange="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 text-emerald-300 font-bold text-[11px] rounded px-1.5 py-1 focus:outline-none">
+                    <option value="Frijol" ${defaultGrains[idx]==='Frijol'?'selected':''}>🫘 Frijol</option>
+                    <option value="Garbanzo" ${defaultGrains[idx]==='Garbanzo'?'selected':''}>🟡 Garbanzo</option>
+                    <option value="Maíz" ${defaultGrains[idx]==='Maíz'?'selected':''}>🌽 Maíz</option>
+                    <option value="Trigo" ${defaultGrains[idx]==='Trigo'?'selected':''}>🌾 Trigo</option>
+                    <option value="Otro" ${defaultGrains[idx]==='Otro'?'selected':''}>📦 Otro</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[9px] text-slate-400 block uppercase font-bold">Variedad</label>
+                  <input type="text" id="variety_${key}" value="${defaultVarieties[idx]}" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 text-[11px] text-white rounded px-1.5 py-1 font-bold" />
+                </div>
               </div>
 
               <div class="space-y-2 text-xs">
@@ -133,14 +189,14 @@
                 </div>
 
                 <!-- SUBPRODUCTOS -->
-                <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 space-y-2">
+                <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/80 space-y-1.5">
                   <div class="flex justify-between items-center">
-                    <span class="text-[10px] uppercase font-bold text-amber-400">Recuperación Subproductos</span>
+                    <span class="text-[9px] uppercase font-bold text-amber-400">Recuperación Subproductos</span>
                     <span id="subTotal_${key}" class="text-[10px] font-mono text-amber-300 font-bold">$0.00 /Ton</span>
                   </div>
                   <div class="grid grid-cols-2 gap-2">
-                    <input type="number" id="subTons_${key}" value="1.5" placeholder="Ton Subprod." oninput="updateCalculations()" class="bg-slate-900 border border-slate-800 rounded p-1 text-[11px] text-white font-mono" />
-                    <input type="number" id="subPrice_${key}" value="3500" placeholder="Precio $/Ton" oninput="updateCalculations()" class="bg-slate-900 border border-slate-800 rounded p-1 text-[11px] text-amber-300 font-mono" />
+                    <input type="number" id="subTons_${key}" value="1.5" placeholder="Ton Subp." oninput="updateCalculations()" class="bg-slate-900 border border-slate-800 rounded p-1 text-[11px] text-white font-mono" />
+                    <input type="number" id="subPrice_${key}" value="3500" placeholder="$/Ton" oninput="updateCalculations()" class="bg-slate-900 border border-slate-800 rounded p-1 text-[11px] text-amber-300 font-mono" />
                   </div>
                 </div>
 
@@ -151,20 +207,20 @@
                     <input type="number" id="marginPct_${key}" value="15" oninput="updateCalculations()" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-emerald-400 font-mono font-bold" />
                   </div>
                   <div>
-                    <label class="text-[10px] text-slate-400 block">Precio Sugerido ($/kg)</label>
+                    <label class="text-[10px] text-slate-400 block">Sugerido ($/kg)</label>
                     <div id="suggestedPrice_${key}" class="p-1.5 font-mono font-bold text-xs text-emerald-300 bg-slate-950 rounded border border-emerald-900">$0.00</div>
                   </div>
                 </div>
 
                 <!-- RESUMEN FINAL OPCIÓN -->
-                <div class="bg-emerald-950/40 border border-emerald-600/30 p-2.5 rounded-xl text-center space-y-1 mt-2">
-                  <span class="text-[10px] text-emerald-300 uppercase block font-semibold">Costo Neto Real Limpio</span>
-                  <div id="netCostKg_${key}" class="text-base font-black text-emerald-400 font-mono">$0.00 / kg</div>
-                  <div id="netCostTon_${key}" class="text-[10px] text-slate-400 font-mono">$0.00 / Ton</div>
+                <div class="bg-emerald-950/40 border border-emerald-600/30 p-2 rounded-xl text-center space-y-0.5 mt-2">
+                  <span class="text-[9px] text-emerald-300 uppercase block font-semibold">Costo Neto Real Limpio</span>
+                  <div id="netCostKg_${key}" class="text-sm font-black text-emerald-400 font-mono">$0.00 / kg</div>
+                  <div id="netCostTon_${key}" class="text-[9px] text-slate-400 font-mono">$0.00 / Ton</div>
                 </div>
 
                 <button onclick="selectOptionForQuote('${key}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-md flex items-center justify-center space-x-1">
-                  <span>🚀 Seleccionar para Cotización</span>
+                  <span>🚀 Usar para Cotización</span>
                 </button>
               </div>
             </div>
@@ -174,24 +230,24 @@
     </section>
 
     <!-- ==================== ETAPA 2: COTIZADOR COMERCIAL ==================== -->
-    <section id="quoteSection" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-2xl space-y-6">
-      <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-slate-800 pb-4">
+    <section id="quoteSection" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5">
+      <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-slate-800 pb-3">
         <div>
-          <h2 class="text-base font-bold text-emerald-400 uppercase tracking-wider">PASO 2: Emisión Comercial de Cotización</h2>
-          <p class="text-xs text-slate-400">Generación de propuesta formal para cliente con base en la opción analizada.</p>
+          <h2 class="text-sm md:text-base font-bold text-emerald-400 uppercase tracking-wider">PASO 2: Emisión Comercial de Cotización</h2>
+          <p class="text-[11px] text-slate-400">Datos comerciales configurados para la opción seleccionada.</p>
         </div>
         <div class="flex items-center space-x-2">
           <label class="text-xs text-slate-400 font-bold">Modo:</label>
-          <select id="quoteMode" onchange="updateCalculations()" class="bg-slate-950 border border-emerald-500/60 text-emerald-300 font-bold text-xs rounded-xl px-3 py-2">
+          <select id="quoteMode" onchange="updateCalculations()" class="bg-slate-950 border border-emerald-500/60 text-emerald-300 font-bold text-xs rounded-xl px-3 py-1.5">
             <option value="venta">🛒 Venta de Producto (Grano Limpio)</option>
             <option value="maquila">⚙️ Servicio de Maquila / Procesado</option>
           </select>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <!-- Configuración de Venta -->
-        <div class="md:col-span-7 space-y-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+        <!-- Parámetros Venta -->
+        <div class="md:col-span-7 space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
           <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Parámetros Comerciales</h3>
 
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -200,7 +256,7 @@
               <input type="number" id="commTons" value="25" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white font-mono font-bold" />
             </div>
             <div>
-              <label class="text-[10px] text-slate-400 block mb-0.5">Presentación Empaque</label>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Empaque</label>
               <select id="commPackaging" onchange="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
                 <option value="Bulto 25 kg">Bulto 25 kg</option>
                 <option value="Bulto 50 kg">Bulto 50 kg</option>
@@ -209,20 +265,20 @@
               </select>
             </div>
             <div>
-              <label class="text-[10px] text-slate-400 block mb-0.5">Precio Venta Cliente ($/kg)</label>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Precio Venta ($/kg)</label>
               <input type="number" step="0.10" id="commPriceKg" oninput="updateCalculations()" class="w-full bg-slate-900 border border-emerald-500 rounded p-1.5 text-xs text-emerald-300 font-mono font-bold" />
             </div>
           </div>
 
           <!-- Cuadro Utilidad Global -->
           <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
-            <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+            <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
               <span class="text-[10px] text-slate-400 block">Utilidad Total Estimada</span>
-              <span id="commProfitTotal" class="text-sm font-black text-emerald-400 font-mono">+$0.00</span>
+              <span id="commProfitTotal" class="text-xs md:text-sm font-black text-emerald-400 font-mono">+$0.00</span>
             </div>
-            <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+            <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
               <span class="text-[10px] text-slate-400 block">Margen Neto Real</span>
-              <span id="commProfitPct" class="text-sm font-black text-emerald-300 font-mono">0.0%</span>
+              <span id="commProfitPct" class="text-xs md:text-sm font-black text-emerald-300 font-mono">0.0%</span>
             </div>
           </div>
         </div>
@@ -235,12 +291,12 @@
             <input type="text" id="clientName" value="Sinaloa Pacific Grains" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white" />
           </div>
           <div>
-            <label class="text-[10px] text-slate-400 block">Atención / Contacto</label>
+            <label class="text-[10px] text-slate-400 block">Contacto</label>
             <input type="text" id="clientContact" value="Edwin Galaviz" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white" />
           </div>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[10px] text-slate-400 block">Condiciones Pago</label>
+              <label class="text-[10px] text-slate-400 block">Pago</label>
               <input type="text" id="paymentTerms" value="50% Anticipo y 50% vs Doc" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white" />
             </div>
             <div>
@@ -251,7 +307,7 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800">
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
         <button onclick="saveToHistory()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all border border-slate-700">
           💾 Guardar en Historial
         </button>
@@ -268,7 +324,7 @@
 
   </main>
 
-  <!-- ==================== PLANTILLA PARA IMPRESIÓN / GENERACIÓN DE PDF ==================== -->
+  <!-- ==================== PLANTILLA DE IMPRESIÓN PDF ==================== -->
   <div id="pdfPrintContainer" class="p-8 max-w-4xl mx-auto font-sans text-xs">
     <div class="flex justify-between items-start border-b-2 border-emerald-950 pb-4 mb-4">
       <div>
@@ -358,12 +414,10 @@
         <button onclick="toggleModal('historyModal')" class="text-slate-400 hover:text-white text-lg">✕</button>
       </div>
 
-      <!-- Gráfica -->
       <div class="h-56 bg-slate-950 p-3 rounded-xl border border-slate-800">
         <canvas id="historyChart"></canvas>
       </div>
 
-      <!-- Tabla Historial -->
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs font-mono">
           <thead>
@@ -403,9 +457,8 @@
       
       const subTons = parseFloat(document.getElementById(`subTons_${key}`).value) || 0;
       const subPrice = parseFloat(document.getElementById(`subPrice_${key}`).value) || 0;
-      const subproductTotalTon = subTons * subPrice / 10; // Recuperación por Tonelada procesada
+      const subproductTotalTon = subTons * subPrice / 10;
 
-      // Costo Ajustado por Rendimiento Neto
       const rawAdjusted = yieldPct > 0 ? (rawPrice / yieldPct) : rawPrice;
       const netCostTon = rawAdjusted + processCost - subproductTotalTon;
       const netCostKg = netCostTon / 1000;
@@ -415,6 +468,8 @@
 
       return {
         provider: document.getElementById(`prov_${key}`).value || `Opción ${key}`,
+        grain: document.getElementById(`grain_${key}`).value,
+        variety: document.getElementById(`variety_${key}`).value,
         rawPrice, yieldPct, processCost, subproductTotalTon,
         netCostTon, netCostKg, suggestedPriceKg
       };
@@ -429,7 +484,6 @@
         document.getElementById(`suggestedPrice_${key}`).innerText = `$${res.suggestedPriceKg.toFixed(2)}`;
       });
 
-      // Actualizar Valores en Cotizador Comercial
       const activeRes = getOptionCalculations(selectedKey);
       const commPriceInput = document.getElementById('commPriceKg');
       
@@ -443,6 +497,18 @@
       const profitPerKg = commPriceKg - activeRes.netCostKg;
       const totalProfit = profitPerKg * tons * 1000;
       const profitPct = activeRes.netCostKg > 0 ? (profitPerKg / activeRes.netCostKg) * 100 : 0;
+
+      const subtotal = tons * 1000 * commPriceKg;
+      const totalQuote = subtotal * 1.16;
+
+      // ACTUALIZAR PANEL DE RESUMEN SUPERIOR (KPIs)
+      document.getElementById('kpiTotalQuote').innerText = `$${totalQuote.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      document.getElementById('kpiTotalTons').innerText = `${tons} Toneladas`;
+      document.getElementById('kpiPackaging').innerText = document.getElementById('commPackaging').value;
+      document.getElementById('kpiTotalProfit').innerText = `${totalProfit >= 0 ? '+' : ''}$${totalProfit.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      document.getElementById('kpiProfitPct').innerText = `${profitPct.toFixed(1)}% Margen Real`;
+      document.getElementById('kpiActiveOpt').innerText = `Opción ${selectedKey} - ${activeRes.provider}`;
+      document.getElementById('kpiActiveGrain').innerText = `${activeRes.grain} (${activeRes.variety})`;
 
       document.getElementById('commProfitTotal').innerText = `${totalProfit >= 0 ? '+' : ''}$${totalProfit.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
       document.getElementById('commProfitPct').innerText = `${profitPct.toFixed(1)}%`;
@@ -471,8 +537,6 @@
 
     function updatePDFPreview(optData) {
       const mode = document.getElementById('quoteMode').value;
-      const grain = document.getElementById('globalProductType').value;
-      const variety = document.getElementById('globalVariety').value;
       const client = document.getElementById('clientName').value;
       const contact = document.getElementById('clientContact').value;
       const tons = parseFloat(document.getElementById('commTons').value) || 25;
@@ -489,8 +553,8 @@
       const total = subtotal + iva;
 
       let desc = mode === 'maquila' 
-        ? `Servicio de Maquila, Limpieza y Procesado para ${grain} (${variety})`
-        : `Venta de ${grain} Seleccionado (${variety}) - Origen: ${optData.provider}`;
+        ? `Servicio de Maquila, Limpieza y Procesado para ${optData.grain} (${optData.variety})`
+        : `Venta de ${optData.grain} Seleccionado (${optData.variety}) - Origen: ${optData.provider}`;
 
       document.getElementById('pdfTableBody').innerHTML = `
         <tr>
@@ -525,11 +589,12 @@
 
     function saveToHistory() {
       const history = getHistory();
+      const activeRes = getOptionCalculations(selectedKey);
       const newItem = {
         id: Date.now(),
         date: document.getElementById('globalDate').value,
         client: document.getElementById('clientName').value,
-        product: `${document.getElementById('globalProductType').value} - ${document.getElementById('globalVariety').value}`,
+        product: `${activeRes.grain} - ${activeRes.variety}`,
         tons: document.getElementById('commTons').value,
         priceKg: document.getElementById('commPriceKg').value,
         total: document.getElementById('pdfTotal').innerText,
@@ -543,9 +608,10 @@
     }
 
     function captureCurrentState() {
+      const activeRes = getOptionCalculations(selectedKey);
       return {
-        grain: document.getElementById('globalProductType').value,
-        variety: document.getElementById('globalVariety').value,
+        grain: activeRes.grain,
+        variety: activeRes.variety,
         tons: document.getElementById('commTons').value,
         client: document.getElementById('clientName').value,
         contact: document.getElementById('clientContact').value,
@@ -558,8 +624,8 @@
       const item = history.find(x => x.id === id);
       if (!item) return;
 
-      document.getElementById('globalProductType').value = item.dataState.grain || 'Frijol';
-      document.getElementById('globalVariety').value = item.dataState.variety || '';
+      document.getElementById(`grain_${selectedKey}`).value = item.dataState.grain || 'Frijol';
+      document.getElementById(`variety_${selectedKey}`).value = item.dataState.variety || '';
       document.getElementById('commTons').value = item.dataState.tons || 25;
       document.getElementById('clientName').value = item.dataState.client || '';
       document.getElementById('clientContact').value = item.dataState.contact || '';
@@ -665,7 +731,6 @@
       if (!el.classList.contains('hidden')) renderHistory();
     }
 
-    // Inicialización
     window.onload = function() {
       selectOptionForQuote('A');
     };
