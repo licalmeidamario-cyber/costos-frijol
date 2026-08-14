@@ -2,738 +2,811 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orgánicos Milenarios | Sistema Integral de Cotizaciones</title>
-  
-  <!-- Tailwind CSS & Chart.js -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#064e3b" />
+  <meta name="description" content="Comparador de Costos con Subproductos y Cotizador Comercial - Orgánicos Milenarios SA de CV" />
+  <title>Orgánicos Milenarios | Costos & Cotizador Comercial</title>
 
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" href="./icon-512.png" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- html2pdf CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
   <style>
     body { -webkit-tap-highlight-color: transparent; }
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
-
-    /* Scroll lateral suave y encaje en móviles */
-    .mobile-scroll-x {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      gap: 1rem;
-      padding-bottom: 0.75rem;
-    }
-    .mobile-scroll-x > div {
-      scroll-snap-align: center;
-      flex: 0 0 88%;
-    }
-    @media (min-width: 768px) {
-      .mobile-scroll-x {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        overflow-x: visible;
-        padding-bottom: 0;
-      }
-      .mobile-scroll-x > div {
-        flex: none;
-      }
-    }
-
-    /* Ocultar barra de scroll estética */
+    .snap-x-mandatory { scroll-snap-type: x mandatory; }
+    .snap-center { scroll-snap-align: center; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* Estilos para impresión nativa / PDF */
-    @media print {
-      body * { visibility: hidden; }
-      #pdfPrintContainer, #pdfPrintContainer * { visibility: visible; }
-      #pdfPrintContainer {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        background: #ffffff !important;
-        color: #0f172a !important;
-        padding: 0;
-        margin: 0;
-      }
-      .no-print { display: none !important; }
-    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans pb-16 antialiased">
 
   <!-- Header Superior -->
-  <header class="bg-emerald-950 border-b border-emerald-800/60 sticky top-0 z-40 shadow-xl px-4 py-3 flex items-center justify-between no-print">
+  <header class="bg-emerald-950 border-b border-emerald-800/60 sticky top-0 z-40 shadow-xl px-4 py-3 flex items-center justify-between">
     <div class="flex items-center space-x-3">
       <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center font-bold text-emerald-300 text-xl">
         🌱
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg text-emerald-100 leading-tight">Orgánicos Milenarios SA de CV</h1>
-        <p class="text-[10px] md:text-xs text-emerald-300 uppercase tracking-widest font-semibold">Análisis Financiero & Cotizador</p>
+        <p class="text-[10px] md:text-xs text-emerald-300 uppercase tracking-widest font-semibold">Análisis de Costos & Cotización Comercial</p>
       </div>
     </div>
     <div class="flex items-center space-x-2">
-      <button onclick="exportDataJSON()" class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-600/40 px-3 py-1.5 rounded-lg font-semibold flex items-center space-x-1 shadow transition-all">
-        <span>📤 Exportar</span>
-      </button>
-      <label class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-600/40 px-3 py-1.5 rounded-lg font-semibold cursor-pointer flex items-center space-x-1 shadow transition-all">
-        <span>📥 Importar</span>
-        <input type="file" id="importFileInput" accept=".json" onchange="importDataJSON(event)" class="hidden" />
-      </label>
-      <button onclick="toggleModal('historyModal')" class="text-xs bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500/50 px-3 py-1.5 rounded-lg font-semibold flex items-center space-x-1 shadow transition-all">
-        <span>📜 Historial</span>
+      <button onclick="toggleHistoryModal()" class="text-xs bg-emerald-700/60 hover:bg-emerald-600 text-white border border-emerald-500/50 px-3 py-1.5 rounded-lg font-semibold flex items-center space-x-1 shadow transition-all">
+        <span>📜 Historial & Gráfica</span>
       </button>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto p-3 md:p-6 space-y-6 no-print">
+  <main class="max-w-7xl mx-auto p-3 md:p-6 space-y-8">
 
-    <!-- ==================== PANEL RESUMEN SUPERIOR (KPIs) ==================== -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-3 no-print">
-      <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl shadow-lg">
-        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Importe Cotización</span>
-        <div id="kpiTotalQuote" class="text-base md:text-lg font-black text-emerald-400 font-mono">$0.00</div>
-        <span class="text-[9px] text-slate-500">Monto total con IVA</span>
-      </div>
-      <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl shadow-lg">
-        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Volumen Activo</span>
-        <div id="kpiTotalTons" class="text-base md:text-lg font-black text-emerald-300 font-mono">0 Ton</div>
-        <span id="kpiPackaging" class="text-[9px] text-slate-500">Bulto 25 kg</span>
-      </div>
-      <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-2xl shadow-lg">
-        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Utilidad Estimada</span>
-        <div id="kpiTotalProfit" class="text-base md:text-lg font-black text-amber-400 font-mono">+$0.00</div>
-        <span id="kpiProfitPct" class="text-[9px] text-emerald-400 font-bold">0.0% Margen</span>
-      </div>
-      <div class="bg-slate-900/90 border border-emerald-600/40 p-3 rounded-2xl shadow-lg bg-emerald-950/20">
-        <span class="text-[10px] uppercase font-bold text-emerald-400 block mb-0.5">Opción Seleccionada</span>
-        <div id="kpiActiveOpt" class="text-base md:text-lg font-black text-white truncate">Opción A</div>
-        <span id="kpiActiveGrain" class="text-[9px] text-emerald-300 font-mono truncate block">Frijol Pinto Saltillo</span>
-      </div>
-    </section>
-
-    <!-- ==================== ETAPA 1: COMPARADOR ANALÍTICO CON SCROLL LATERAL EN CELULAR ==================== -->
-    <section class="space-y-3">
-      <div class="flex items-center justify-between px-1">
+    <!-- ==================== ETAPA 1: COMPARADOR DE COSTOS INTERNOS ==================== -->
+    <section class="space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl p-4 gap-3 shadow-lg">
         <div>
-          <h2 class="text-sm md:text-base font-bold text-emerald-400">PASO 1: Comparador Analítico de Costos</h2>
-          <p class="text-[11px] text-slate-400">Desliza horizontalmente en celular para evaluar las distintas opciones de granos.</p>
+          <h2 class="text-sm md:text-base font-bold text-emerald-400 flex items-center space-x-2">
+            <span>PASO 1: Análisis Comparativo de Costos y Subproductos</span>
+          </h2>
+          <p class="text-xs text-slate-400">Evalúa proveedores, mermas y recuperaciones de subproductos para determinar el costo neto real por kilo limpiado.</p>
         </div>
-        <div class="flex items-center space-x-2">
-          <label class="text-[10px] text-slate-400 uppercase font-bold">Fecha:</label>
-          <input type="date" id="globalDate" class="bg-slate-900 border border-slate-800 text-xs text-white rounded-lg px-2 py-1 font-mono" />
-        </div>
-      </div>
 
-      <!-- CONTENEDOR DE OPCIONES CON SCROLL SNAP EN CELULARES -->
-      <div class="mobile-scroll-x no-scrollbar">
-        <script>
-          const optionKeys = ['A', 'B', 'C'];
-          const defaultProviders = ['Bodega Guasave', 'Productor Ahome', 'Distribuidora del Valle'];
-          const defaultGrains = ['Frijol', 'Garbanzo', 'Maíz'];
-          const defaultVarieties = ['Pinto Saltillo', 'Blanco Sinaloa', 'Blanco Harinero'];
-          const defaultPrices = [22000, 21500, 23000];
-          const defaultYields = [92, 88, 95];
-
-          document.write(optionKeys.map((key, idx) => `
-            <div id="card_opt_${key}" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-xl transition-all">
-              
-              <!-- Cabecera Tarjeta -->
-              <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <span class="font-bold text-xs text-emerald-400 uppercase tracking-wider">Opción ${key}</span>
-                <input type="text" id="prov_${key}" value="${defaultProviders[idx]}" oninput="updateCalculations()" placeholder="Proveedor" class="bg-slate-950 border border-slate-800 text-xs text-slate-200 px-2 py-1 rounded text-right font-bold w-32" />
-              </div>
-
-              <!-- Tipo de Grano y Variedad Específicos por Opción -->
-              <div class="grid grid-cols-2 gap-2 bg-slate-950/80 p-2 rounded-xl border border-slate-800/80">
-                <div>
-                  <label class="text-[9px] text-slate-400 block uppercase font-bold">Tipo Grano</label>
-                  <select id="grain_${key}" onchange="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 text-emerald-300 font-bold text-[11px] rounded px-1.5 py-1 focus:outline-none">
-                    <option value="Frijol" ${defaultGrains[idx]==='Frijol'?'selected':''}>🫘 Frijol</option>
-                    <option value="Garbanzo" ${defaultGrains[idx]==='Garbanzo'?'selected':''}>🟡 Garbanzo</option>
-                    <option value="Maíz" ${defaultGrains[idx]==='Maíz'?'selected':''}>🌽 Maíz</option>
-                    <option value="Trigo" ${defaultGrains[idx]==='Trigo'?'selected':''}>🌾 Trigo</option>
-                    <option value="Otro" ${defaultGrains[idx]==='Otro'?'selected':''}>📦 Otro</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-[9px] text-slate-400 block uppercase font-bold">Variedad</label>
-                  <input type="text" id="variety_${key}" value="${defaultVarieties[idx]}" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 text-[11px] text-white rounded px-1.5 py-1 font-bold" />
-                </div>
-              </div>
-
-              <div class="space-y-2 text-xs">
-                <div class="grid grid-cols-2 gap-2">
-                  <div>
-                    <label class="text-[10px] text-slate-400 block">Precio M.P. ($/Ton)</label>
-                    <input type="number" id="rawPrice_${key}" value="${defaultPrices[idx]}" oninput="updateCalculations()" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-emerald-400 font-mono font-bold" />
-                  </div>
-                  <div>
-                    <label class="text-[10px] text-slate-400 block">Rend. Limpio (%)</label>
-                    <input type="number" id="yield_${key}" value="${defaultYields[idx]}" oninput="updateCalculations()" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white font-mono" />
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                  <div>
-                    <label class="text-[10px] text-slate-400 block">% Merma Inevitable</label>
-                    <input type="number" step="0.1" id="mermaPct_${key}" value="1.5" oninput="updateCalculations()" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-slate-300 font-mono" />
-                  </div>
-                  <div>
-                    <label class="text-[10px] text-slate-400 block">Flete + Maquila ($/Ton)</label>
-                    <input type="number" id="process_${key}" value="1000" oninput="updateCalculations()" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-slate-300 font-mono" />
-                  </div>
-                </div>
-
-                <!-- SUBPRODUCTOS -->
-                <div class="bg-slate-950/60 p-2 rounded-xl border border-slate-800/80 space-y-1.5">
-                  <div class="flex justify-between items-center">
-                    <span class="text-[9px] uppercase font-bold text-amber-400">Recuperación Subproductos</span>
-                    <span id="subTotal_${key}" class="text-[10px] font-mono text-amber-300 font-bold">$0.00 /Ton</span>
-                  </div>
-                  <div class="grid grid-cols-2 gap-2">
-                    <input type="number" id="subTons_${key}" value="1.5" placeholder="Ton Subp." oninput="updateCalculations()" class="bg-slate-900 border border-slate-800 rounded p-1 text-[11px] text-white font-mono" />
-                    <input type="number" id="subPrice_${key}" value="3500" placeholder="$/Ton" oninput="updateCalculations()" class="bg-slate-900 border border-slate-800 rounded p-1 text-[11px] text-amber-300 font-mono" />
-                  </div>
-                </div>
-
-                <!-- MÁRGENES DE VENTA -->
-                <div class="grid grid-cols-2 gap-2 pt-1">
-                  <div>
-                    <label class="text-[10px] text-slate-400 block">% Utilidad Deseada</label>
-                    <input type="number" id="marginPct_${key}" value="15" oninput="updateCalculations()" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-emerald-400 font-mono font-bold" />
-                  </div>
-                  <div>
-                    <label class="text-[10px] text-slate-400 block">Sugerido ($/kg)</label>
-                    <div id="suggestedPrice_${key}" class="p-1.5 font-mono font-bold text-xs text-emerald-300 bg-slate-950 rounded border border-emerald-900">$0.00</div>
-                  </div>
-                </div>
-
-                <!-- RESUMEN FINAL OPCIÓN -->
-                <div class="bg-emerald-950/40 border border-emerald-600/30 p-2 rounded-xl text-center space-y-0.5 mt-2">
-                  <span class="text-[9px] text-emerald-300 uppercase block font-semibold">Costo Neto Real Limpio</span>
-                  <div id="netCostKg_${key}" class="text-sm font-black text-emerald-400 font-mono">$0.00 / kg</div>
-                  <div id="netCostTon_${key}" class="text-[9px] text-slate-400 font-mono">$0.00 / Ton</div>
-                </div>
-
-                <button onclick="selectOptionForQuote('${key}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2 rounded-xl transition-all shadow-md flex items-center justify-center space-x-1">
-                  <span>🚀 Usar para Cotización</span>
-                </button>
-              </div>
-            </div>
-          `).join(''));
-        </script>
-      </div>
-    </section>
-
-    <!-- ==================== ETAPA 2: COTIZADOR COMERCIAL ==================== -->
-    <section id="quoteSection" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5">
-      <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-slate-800 pb-3">
-        <div>
-          <h2 class="text-sm md:text-base font-bold text-emerald-400 uppercase tracking-wider">PASO 2: Emisión Comercial de Cotización</h2>
-          <p class="text-[11px] text-slate-400">Datos comerciales configurados para la opción seleccionada.</p>
-        </div>
-        <div class="flex items-center space-x-2">
-          <label class="text-xs text-slate-400 font-bold">Modo:</label>
-          <select id="quoteMode" onchange="updateCalculations()" class="bg-slate-950 border border-emerald-500/60 text-emerald-300 font-bold text-xs rounded-xl px-3 py-1.5">
-            <option value="venta">🛒 Venta de Producto (Grano Limpio)</option>
-            <option value="maquila">⚙️ Servicio de Maquila / Procesado</option>
+        <div class="flex items-center space-x-3">
+          <span class="text-xs font-bold text-slate-400 uppercase">Grano:</span>
+          <select id="globalProductType" onchange="changeProductType(this.value)" class="bg-slate-950 border border-emerald-600/50 text-emerald-300 font-bold text-xs md:text-sm rounded-xl px-3 py-1.5 focus:outline-none">
+            <option value="frijol">🫘 Frijol</option>
+            <option value="arroz">🌾 Arroz</option>
+            <option value="lenteja">🟤 Lenteja</option>
+            <option value="garbanzo">🟡 Garbanzo</option>
+            <option value="otro">📦 Otro Grano</option>
           </select>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
-        <!-- Parámetros Venta -->
-        <div class="md:col-span-7 space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Parámetros Comerciales</h3>
-
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div>
-              <label class="text-[10px] text-slate-400 block mb-0.5">Volumen (Toneladas)</label>
-              <input type="number" id="commTons" value="25" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white font-mono font-bold" />
-            </div>
-            <div>
-              <label class="text-[10px] text-slate-400 block mb-0.5">Empaque</label>
-              <select id="commPackaging" onchange="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
-                <option value="Bulto 25 kg">Bulto 25 kg</option>
-                <option value="Bulto 50 kg">Bulto 50 kg</option>
-                <option value="Super Saco 1 Ton">Super Saco 1 Ton</option>
-                <option value="Al Granel">Al Granel</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-[10px] text-slate-400 block mb-0.5">Precio Venta ($/kg)</label>
-              <input type="number" step="0.10" id="commPriceKg" oninput="updateCalculations()" class="w-full bg-slate-900 border border-emerald-500 rounded p-1.5 text-xs text-emerald-300 font-mono font-bold" />
-            </div>
-          </div>
-
-          <!-- Cuadro Utilidad Global -->
-          <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
-            <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
-              <span class="text-[10px] text-slate-400 block">Utilidad Total Estimada</span>
-              <span id="commProfitTotal" class="text-xs md:text-sm font-black text-emerald-400 font-mono">+$0.00</span>
-            </div>
-            <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
-              <span class="text-[10px] text-slate-400 block">Margen Neto Real</span>
-              <span id="commProfitPct" class="text-xs md:text-sm font-black text-emerald-300 font-mono">0.0%</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Datos Cliente -->
-        <div class="md:col-span-5 space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Datos del Cliente</h3>
-          <div>
-            <label class="text-[10px] text-slate-400 block">Empresa / Razón Social</label>
-            <input type="text" id="clientName" value="Sinaloa Pacific Grains" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white" />
-          </div>
-          <div>
-            <label class="text-[10px] text-slate-400 block">Contacto</label>
-            <input type="text" id="clientContact" value="Edwin Galaviz" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white" />
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="text-[10px] text-slate-400 block">Pago</label>
-              <input type="text" id="paymentTerms" value="50% Anticipo y 50% vs Doc" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white" />
-            </div>
-            <div>
-              <label class="text-[10px] text-slate-400 block">Vigencia</label>
-              <input type="text" id="validityPeriod" value="3 Días hábiles" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white" />
-            </div>
-          </div>
-        </div>
+      <!-- TABLA RESUMEN CONCENTRADO -->
+      <div class="bg-gradient-to-br from-slate-900 via-emerald-950/60 to-slate-900 border border-emerald-600/30 rounded-2xl p-4 shadow-xl overflow-x-auto">
+        <table class="w-full text-left text-xs md:text-sm font-mono">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 font-sans">
+              <th class="py-2 px-2">Métrica</th>
+              <th class="py-2 px-2 text-center text-emerald-400 font-bold bg-emerald-950/40 rounded-t-lg">Opción A</th>
+              <th class="py-2 px-2 text-center text-blue-400 font-bold bg-slate-900/40 rounded-t-lg">Opción B</th>
+              <th class="py-2 px-2 text-center text-amber-400 font-bold bg-slate-900/40 rounded-t-lg">Opción C</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/60">
+            <tr>
+              <td class="py-2 px-2 font-sans text-slate-300">Precio Mat. Prima / Rend. Limpio</td>
+              <td id="summary_raw_A" class="py-2 px-2 text-center font-bold text-white">$0.00</td>
+              <td id="summary_raw_B" class="py-2 px-2 text-center font-bold text-white">$0.00</td>
+              <td id="summary_raw_C" class="py-2 px-2 text-center font-bold text-white">$0.00</td>
+            </tr>
+            <tr>
+              <td class="py-2 px-2 font-sans text-slate-300">Recuperación Subproductos (Ton)</td>
+              <td id="summary_rec_A" class="py-2 px-2 text-center font-bold text-emerald-300">$0.00</td>
+              <td id="summary_rec_B" class="py-2 px-2 text-center font-bold text-blue-300">$0.00</td>
+              <td id="summary_rec_C" class="py-2 px-2 text-center font-bold text-amber-300">$0.00</td>
+            </tr>
+            <tr>
+              <td class="py-2 px-2 font-sans text-slate-300 font-bold">Costo Neto Limpio (kg / Bulto 25kg)</td>
+              <td id="summary_costKg_A" class="py-2 px-2 text-center font-bold text-emerald-400">$0.00</td>
+              <td id="summary_costKg_B" class="py-2 px-2 text-center font-bold text-blue-400">$0.00</td>
+              <td id="summary_costKg_C" class="py-2 px-2 text-center font-bold text-amber-400">$0.00</td>
+            </tr>
+            <tr class="bg-slate-900/80">
+              <td class="py-2 px-2 font-sans text-emerald-400 font-bold">Selección para Cotización</td>
+              <td class="py-2 px-2 text-center">
+                <button onclick="transferToQuote(0)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg shadow transition-all">🚀 Cotizar Opción A</button>
+              </td>
+              <td class="py-2 px-2 text-center">
+                <button onclick="transferToQuote(1)" class="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg shadow transition-all">🚀 Cotizar Opción B</button>
+              </td>
+              <td class="py-2 px-2 text-center">
+                <button onclick="transferToQuote(2)" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg shadow transition-all">🚀 Cotizar Opción C</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
-        <button onclick="saveToHistory()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all border border-slate-700">
-          💾 Guardar en Historial
-        </button>
-        <div class="flex items-center space-x-2">
-          <button onclick="sendWhatsApp()" class="bg-green-600 hover:bg-green-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow flex items-center space-x-1">
-            <span>💬 Mensaje WhatsApp</span>
-          </button>
-          <button onclick="triggerPrintPDF()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow flex items-center space-x-1">
-            <span>📥 Generar PDF Oficial</span>
-          </button>
+      <!-- COLUMNAS EDITABLES A, B, C -->
+      <div id="optionsContainer" class="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto snap-x-mandatory no-scrollbar pb-2">
+        <div id="opt_col_0" class="snap-center min-w-[88vw] sm:min-w-[350px] md:min-w-0 flex-1 bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 shadow-xl space-y-4"></div>
+        <div id="opt_col_1" class="snap-center min-w-[88vw] sm:min-w-[350px] md:min-w-0 flex-1 bg-slate-900 border border-blue-500/40 rounded-2xl p-4 shadow-xl space-y-4"></div>
+        <div id="opt_col_2" class="snap-center min-w-[88vw] sm:min-w-[350px] md:min-w-0 flex-1 bg-slate-900 border border-amber-500/40 rounded-2xl p-4 shadow-xl space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- ==================== ETAPA 2: COTIZADOR COMERCIAL Y GENERADOR DE PDF ==================== -->
+    <section id="commercialSection" class="space-y-4 pt-6 border-t border-slate-800 scroll-mt-20">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-2xl space-y-6">
+        
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-base font-bold text-emerald-400 uppercase tracking-wider flex items-center space-x-2">
+              <span>PASO 2: Emisión Comercial de Cotización (Orgánicos Milenarios)</span>
+            </h2>
+            <p class="text-xs text-slate-400">Ajusta márgenes finales a discreción, configura condiciones comerciales y exporta el formato oficial.</p>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <label class="text-xs font-bold text-slate-300">Modo:</label>
+            <select id="quoteType" onchange="handleQuoteTypeChange()" class="bg-slate-950 border border-emerald-500/60 text-emerald-300 font-bold text-xs rounded-xl px-3 py-2">
+              <option value="venta">🛒 Venta de Producto (Grano)</option>
+              <option value="maquila">⚙️ Servicio de Maquila / Procesado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- FORMULARIO CLIENTE Y AJUSTES A DISCRECIÓN -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+          
+          <div class="md:col-span-7 space-y-4 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Datos del Producto & Ajuste a Discreción</h3>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">Producto / Variedad</label>
+                <input type="text" id="commVariety" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white font-bold" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">Proveedor Seleccionado</label>
+                <input type="text" id="commProvider" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-slate-300" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">Volumen (Toneladas)</label>
+                <input type="number" step="1" id="commTons" value="20" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white font-mono" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">Empaque Presentación</label>
+                <select id="commPackaging" onchange="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+                  <option value="Bulto 25 kg">Bulto 25 kg</option>
+                  <option value="Bulto 50 kg">Bulto 50 kg</option>
+                  <option value="Super Saco 1 Ton">Super Saco (1 Ton)</option>
+                  <option value="Al Granel">Al Granel</option>
+                </select>
+              </div>
+              <div id="maquilaMermaBox" class="hidden">
+                <label class="text-[10px] text-slate-400 block mb-0.5">Merma Máx. Aceptada (%)</label>
+                <input type="number" step="0.1" id="commMerma" value="1.5" oninput="updateCalculations()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white font-mono" />
+              </div>
+            </div>
+
+            <!-- CONTROLES DE PRECIO A DISCRECIÓN -->
+            <div class="pt-3 border-t border-slate-800 grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                <label class="text-[10px] text-amber-400 font-bold block">Costo Neto Limpio ($/kg)</label>
+                <input type="number" step="0.05" id="commCostKg" oninput="updateCalculations()" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-xs text-amber-300 font-mono font-bold mt-1" />
+                <span class="text-[9px] text-slate-500 block mt-0.5">Calculado en Paso 1</span>
+              </div>
+
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-emerald-600/50">
+                <label id="lblCommPrice" class="text-[10px] text-emerald-400 font-bold block">Precio Venta Cliente ($/kg)</label>
+                <input type="number" step="0.10" id="commPriceKg" oninput="updateCalculations()" class="w-full bg-slate-950 border border-emerald-500 rounded p-1.5 text-xs text-emerald-300 font-mono font-bold mt-1" />
+                <span class="text-[9px] text-slate-400 block mt-0.5">Revisar a discreción</span>
+              </div>
+
+              <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 col-span-2 md:col-span-1">
+                <label class="text-[10px] text-slate-400 block">Utilidad / Tonelada</label>
+                <div id="commProfitTon" class="text-xs font-black text-emerald-400 mt-2 font-mono">+$0.00</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- DATOS DEL CLIENTE Y TÉRMINOS -->
+          <div class="md:col-span-5 space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400">Datos de Cliente & Condiciones</h3>
+
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Nombre / Razón Social del Cliente</label>
+              <input type="text" id="clientName" placeholder="Ej. Comercializadora del Norte S.A." oninput="updateDocumentPreview()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white" />
+            </div>
+
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Contacto / Teléfono / Ciudad</label>
+              <input type="text" id="clientContact" placeholder="Ej. Ing. López - Culiacán, Sin." oninput="updateDocumentPreview()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">Condiciones de Pago</label>
+                <select id="paymentTerms" onchange="updateDocumentPreview()" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-xs text-white">
+                  <option value="Contado / Transferencia previa a carga">Contado / Transferencia</option>
+                  <option value="50% Anticipo y 50% vs Documentos">50% Anticipo / 50% vs Doc</option>
+                  <option value="Crédito 15 días con carta compromiso">Crédito 15 días</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">Vigencia</label>
+                <input type="text" id="validityPeriod" value="3 Días hábiles" oninput="updateDocumentPreview()" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-xs text-white" />
+              </div>
+            </div>
+
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Lugar de Entrega / Recepción</label>
+              <input type="text" id="deliveryLocation" value="Planta Complejo Industrial Orgánicos Milenarios, Los Mochis, Sin." oninput="updateDocumentPreview()" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-xs text-white" />
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- DOCUMENTO IMPRESO / EXPORTABLE DE ORGÁNICOS MILENARIOS -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Vista Previa Documento Oficial</h3>
+          <div class="flex items-center space-x-2">
+            <button onclick="sendViaWhatsApp()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1 shadow">
+              <span>💬 WhatsApp</span>
+            </button>
+            <button onclick="downloadPDF()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1 shadow">
+              <span>📥 Descargar PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- PLANTILLA CARTA OFICIAL -->
+        <div id="quotePDFTemplate" class="bg-white text-slate-900 rounded-2xl p-6 md:p-8 shadow-2xl space-y-6 max-w-4xl mx-auto font-sans text-xs">
+          
+          <div class="flex justify-between items-start border-b border-slate-300 pb-4">
+            <div>
+              <h1 class="text-lg font-black text-emerald-950 uppercase tracking-tight">Orgánicos Milenarios SA de CV</h1>
+              <p class="text-[10px] text-slate-600 font-semibold">Complejo Industrial & Comercialización de Granos</p>
+              <p class="text-[10px] text-slate-500">Los Mochis, Sinaloa, México • Tel: (668) 812-0000</p>
+            </div>
+            <div class="text-right">
+              <span id="pdfTagType" class="inline-block bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-md mb-1">Cotización de Venta</span>
+              <p class="font-mono text-xs font-bold text-slate-800" id="pdfFolio">Folio: COT-2026-1042</p>
+              <p class="text-[10px] text-slate-500" id="pdfDate">Fecha: 13/08/2026</p>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-[9px] uppercase font-bold text-slate-400 block">Cliente:</span>
+              <p id="pdfClientName" class="font-bold text-slate-800 text-sm">Cliente General</p>
+              <p id="pdfClientContact" class="text-slate-600 text-[11px]">Sin datos de contacto</p>
+            </div>
+            <div class="text-right">
+              <span class="text-[9px] uppercase font-bold text-slate-400 block">Atendido Por:</span>
+              <p class="font-bold text-slate-800">Mario Almeida Torres</p>
+              <p class="text-slate-600 text-[11px]">Director General / Orgánicos Milenarios</p>
+            </div>
+          </div>
+
+          <div>
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-emerald-950 text-white text-[10px] uppercase font-bold">
+                  <th class="p-2 rounded-l">Concepto / Descripción</th>
+                  <th class="p-2 text-center">Empaque</th>
+                  <th class="p-2 text-center">Cantidad</th>
+                  <th class="p-2 text-right">Precio Unid. ($/kg)</th>
+                  <th class="p-2 text-right rounded-r">Importe Total</th>
+                </tr>
+              </thead>
+              <tbody id="pdfTableBody" class="divide-y divide-slate-200 text-slate-800 font-mono">
+                <!-- Render Dinámico -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex justify-between items-start pt-2">
+            <div class="w-2/3 pr-4 space-y-2 font-sans">
+              <div class="bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100">
+                <span class="text-[9px] uppercase font-bold text-emerald-900 block">Condiciones Comercialización:</span>
+                <ul class="text-[10px] text-slate-700 space-y-0.5 list-disc pl-3">
+                  <li><strong>Pago:</strong> <span id="pdfPayment">Contado</span></li>
+                  <li><strong>Lugar Entrega:</strong> <span id="pdfDelivery">Planta Orgánicos Milenarios</span></li>
+                  <li><strong>Vigencia Oferta:</strong> <span id="pdfValidity">3 Días hábiles</span></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="w-1/3 space-y-1.5 text-right font-mono">
+              <div class="flex justify-between text-slate-600 text-xs">
+                <span>Subtotal:</span>
+                <span id="pdfSubtotal">$0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-600 text-xs">
+                <span>IVA (16%):</span>
+                <span id="pdfIva">$0.00</span>
+              </div>
+              <div class="flex justify-between border-t border-slate-300 pt-1 font-bold text-sm text-emerald-950">
+                <span>Total Final:</span>
+                <span id="pdfTotal">$0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-8 grid grid-cols-2 gap-8 text-center border-t border-slate-200">
+            <div>
+              <div class="border-b border-slate-400 w-3/4 mx-auto mb-1"></div>
+              <p class="font-bold text-slate-800 text-[10px]">Orgánicos Milenarios SA de CV</p>
+            </div>
+            <div>
+              <div class="border-b border-slate-400 w-3/4 mx-auto mb-1"></div>
+              <p class="font-bold text-slate-800 text-[10px]">Aceptado por Cliente</p>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- ==================== PLANTILLA DE IMPRESIÓN PDF ==================== -->
-  <div id="pdfPrintContainer" class="p-8 max-w-4xl mx-auto font-sans text-xs">
-    <div class="flex justify-between items-start border-b-2 border-emerald-950 pb-4 mb-4">
-      <div>
-        <h1 class="text-xl font-black text-emerald-950 uppercase tracking-tight">Orgánicos Milenarios SA de CV</h1>
-        <p class="text-[11px] text-slate-700 font-bold">Complejo Industrial & Comercialización de Granos</p>
-        <p class="text-[10px] text-slate-600">Los Mochis, Sinaloa, México • Teléfono: 6688118726</p>
+  <!-- MODAL HISTORIAL Y GRÁFICAS -->
+  <div id="historyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[90vh] rounded-2xl p-5 shadow-2xl flex flex-col overflow-hidden space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <h3 class="font-bold text-emerald-400 text-sm">📜 Historial & Gráficas de Fluctuación</h3>
+        <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-white font-bold">✕</button>
       </div>
-      <div class="text-right">
-        <span id="pdfTagType" class="inline-block bg-emerald-100 text-emerald-900 text-[10px] font-black uppercase px-2.5 py-1 rounded mb-1">Cotización Comercial</span>
-        <p id="pdfFolio" class="font-mono text-xs font-bold text-slate-800">Folio: COT-2026-1082</p>
-        <p id="pdfDate" class="text-[10px] text-slate-600">Fecha: 13/08/2026</p>
-      </div>
-    </div>
 
-    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-2 gap-4 mb-6">
-      <div>
-        <span class="text-[9px] uppercase font-bold text-slate-400 block">Cliente:</span>
-        <p id="pdfClientName" class="font-bold text-slate-900 text-sm">Sinaloa Pacific Grains</p>
-        <p id="pdfClientContact" class="text-slate-700 text-[11px]">Edwin Galaviz</p>
-      </div>
-      <div class="text-right">
-        <span class="text-[9px] uppercase font-bold text-slate-400 block">Atendido Por:</span>
-        <p class="font-bold text-slate-900">Mario Almeida Torres</p>
-        <p class="text-slate-700 text-[11px]">Director General / Orgánicos Milenarios</p>
-      </div>
-    </div>
-
-    <table class="w-full text-left border-collapse mb-6">
-      <thead>
-        <tr class="bg-emerald-950 text-white text-[10px] uppercase font-bold">
-          <th class="p-2">Concepto / Descripción</th>
-          <th class="p-2 text-center">Presentación</th>
-          <th class="p-2 text-center">Cantidad</th>
-          <th class="p-2 text-right">Precio Unid. ($/kg)</th>
-          <th class="p-2 text-right">Importe Total</th>
-        </tr>
-      </thead>
-      <tbody id="pdfTableBody" class="divide-y divide-slate-200 text-slate-800 font-mono">
-        <!-- Render dinámico -->
-      </tbody>
-    </table>
-
-    <div class="flex justify-between items-start pt-2 border-t border-slate-200">
-      <div class="w-2/3 pr-4 space-y-2">
-        <div class="bg-slate-50 p-3 rounded border border-slate-200">
-          <span class="text-[9px] uppercase font-bold text-emerald-950 block mb-1">Términos Comerciales:</span>
-          <ul class="text-[10px] text-slate-700 space-y-0.5 list-disc pl-3">
-            <li><strong>Condiciones de Pago:</strong> <span id="pdfPayment">50% Anticipo y 50% vs Doc</span></li>
-            <li><strong>Lugar de Entrega:</strong> Planta Complejo Industrial Orgánicos Milenarios, Los Mochis, Sin.</li>
-            <li><strong>Vigencia de Oferta:</strong> <span id="pdfValidity">3 Días hábiles</span></li>
-          </ul>
+      <div class="p-2 overflow-y-auto space-y-4 flex-1">
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+          <div class="relative w-full h-48">
+            <canvas id="priceTrendChart"></canvas>
+          </div>
         </div>
-      </div>
 
-      <div class="w-1/3 text-right space-y-1 font-mono text-xs">
-        <div class="flex justify-between text-slate-600">
-          <span>Subtotal:</span>
-          <span id="pdfSubtotal" class="font-bold">$0.00</span>
+        <div class="overflow-x-auto border border-slate-800 rounded-xl">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px]">
+              <tr>
+                <th class="p-2">Fecha</th>
+                <th class="p-2">Producto/Variedad</th>
+                <th class="p-2">Proveedor</th>
+                <th class="p-2 text-right">Costo Limpio</th>
+                <th class="p-2 text-center">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody" class="divide-y divide-slate-800 bg-slate-900"></tbody>
+          </table>
         </div>
-        <div class="flex justify-between text-slate-600">
-          <span>IVA (16%):</span>
-          <span id="pdfIva" class="font-bold">$0.00</span>
-        </div>
-        <div class="flex justify-between border-t border-slate-300 pt-1 text-sm font-black text-emerald-950">
-          <span>Total Final:</span>
-          <span id="pdfTotal">$0.00</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-12 pt-6 border-t border-slate-200 flex justify-between items-end text-[9px] text-slate-500">
-      <div>
-        <p class="font-bold text-slate-700">Orgánicos Milenarios SA de CV</p>
-        <p>Procesamiento, Limpieza y Comercialización de Granos</p>
-      </div>
-      <div class="text-right">
-        <p>Aceptado por Cliente: _______________________</p>
       </div>
     </div>
   </div>
 
-  <!-- ==================== MODAL HISTORIAL Y GRÁFICAS ==================== -->
-  <div id="historyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-4xl w-full space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-        <h3 class="text-base font-bold text-emerald-400">Historial de Cotizaciones & Análisis Comparativo</h3>
-        <button onclick="toggleModal('historyModal')" class="text-slate-400 hover:text-white text-lg">✕</button>
-      </div>
-
-      <div class="h-56 bg-slate-950 p-3 rounded-xl border border-slate-800">
-        <canvas id="historyChart"></canvas>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs font-mono">
-          <thead>
-            <tr class="border-b border-slate-800 text-slate-400 font-sans">
-              <th class="p-2">Fecha</th>
-              <th class="p-2">Cliente</th>
-              <th class="p-2">Producto</th>
-              <th class="p-2">Volumen</th>
-              <th class="p-2 text-right">Precio $/kg</th>
-              <th class="p-2 text-center">Acción</th>
-            </tr>
-          </thead>
-          <tbody id="historyTableBody" class="divide-y divide-slate-800 text-slate-300">
-            <!-- Dinámico -->
-          </tbody>
-        </table>
-      </div>
-
-      <div class="text-right">
-        <button onclick="toggleModal('historyModal')" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== LÓGICA JAVASCRIPT INTEGRADA ==================== -->
   <script>
-    let selectedKey = 'A';
-    let chartInstance = null;
+    const STORAGE_KEY_MULTI = 'granos_multi_quote_v6';
+    const STORAGE_KEY_HISTORY = 'granos_history_records_v3';
 
-    document.getElementById('globalDate').valueAsDate = new Date();
+    const VARIETIES_MAP = {
+      frijol: ['Reyna', 'Higuera', 'Pinto', 'Negro', 'Azufrado', 'Otro'],
+      arroz: ['Largo/Súper', 'Mediano', 'Integral', 'Otro'],
+      lenteja: ['Lentejón', 'Verde', 'Café', 'Otra'],
+      garbanzo: ['Blanco Sinaloa', 'Garbanzo Calibre 40/42', 'Otro'],
+      otro: ['Estándar', 'Especial']
+    };
 
-    function getOptionCalculations(key) {
-      const rawPrice = parseFloat(document.getElementById(`rawPrice_${key}`).value) || 0;
-      const yieldPct = (parseFloat(document.getElementById(`yield_${key}`).value) || 100) / 100;
-      const mermaPct = (parseFloat(document.getElementById(`mermaPct_${key}`).value) || 0) / 100;
-      const processCost = parseFloat(document.getElementById(`process_${key}`).value) || 0;
+    const DEFAULT_OPTIONS = [
+      {
+        name: 'Opción A', productType: 'frijol', variety: 'Reyna', provider: 'Productor Juan José Ríos',
+        userAuthor: 'Mario Almeida Torres', date: new Date().toISOString().split('T')[0],
+        rawPrice: 25.00, maquila: 0.60, freight: 0.40, packBag: 10.00, mermaPct: 1.0, marginPct: 5.0,
+        subproducts: [
+          { id: 'sub_a1', name: 'Granillo', pct: 3.0, price: 6.00 },
+          { id: 'sub_a2', name: 'Mochote', pct: 1.5, price: 3.50 }
+        ]
+      },
+      {
+        name: 'Opción B', productType: 'frijol', variety: 'Higuera', provider: 'Agrícola Los Mochis',
+        userAuthor: 'Mario Almeida Torres', date: new Date().toISOString().split('T')[0],
+        rawPrice: 24.50, maquila: 0.60, freight: 0.50, packBag: 10.00, mermaPct: 1.2, marginPct: 5.0,
+        subproducts: [
+          { id: 'sub_b1', name: 'Granillo', pct: 3.5, price: 6.00 }
+        ]
+      },
+      {
+        name: 'Opción C', productType: 'frijol', variety: 'Pinto', provider: 'Bodega Guasave',
+        userAuthor: 'Mario Almeida Torres', date: new Date().toISOString().split('T')[0],
+        rawPrice: 26.00, maquila: 0.50, freight: 0.35, packBag: 10.00, mermaPct: 0.8, marginPct: 5.0,
+        subproducts: [
+          { id: 'sub_c1', name: 'Granillo', pct: 2.5, price: 6.50 },
+          { id: 'sub_c2', name: 'Cáscara / Polvillo', pct: 2.0, price: 1.50 }
+        ]
+      }
+    ];
+
+    let optionsData = [];
+    let historyRecords = [];
+    let currentProduct = 'frijol';
+
+    function initApp() {
+      const savedOptions = localStorage.getItem(STORAGE_KEY_MULTI);
+      optionsData = savedOptions ? JSON.parse(savedOptions) : JSON.parse(JSON.stringify(DEFAULT_OPTIONS));
+
+      const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
+      historyRecords = savedHistory ? JSON.parse(savedHistory) : [];
+
+      renderColumns();
+      recalculate();
+      generateFolio();
+
+      // Cargar la primera opción por defecto
+      transferToQuote(0);
+    }
+
+    function generateFolio() {
+      const randomId = Math.floor(1000 + Math.random() * 9000);
+      document.getElementById('pdfFolio').innerText = `Folio: COT-2026-${randomId}`;
+      document.getElementById('pdfDate').innerText = `Fecha: ${new Date().toLocaleDateString('es-MX')}`;
+    }
+
+    function changeProductType(product) {
+      currentProduct = product;
+      for (let i = 0; i < 3; i++) {
+        optionsData[i].productType = product;
+        optionsData[i].variety = VARIETIES_MAP[product][0];
+      }
+      renderColumns();
+      recalculate();
+    }
+
+    function renderColumns() {
+      const themeColors = [
+        { text: 'text-emerald-400', btn: 'hover:border-emerald-500 text-emerald-400' },
+        { text: 'text-blue-400', btn: 'hover:border-blue-500 text-blue-400' },
+        { text: 'text-amber-400', btn: 'hover:border-amber-500 text-amber-400' }
+      ];
+
+      for (let i = 0; i < 3; i++) {
+        const col = document.getElementById(`opt_col_${i}`);
+        const theme = themeColors[i];
+        const opt = optionsData[i];
+
+        const varietyOptionsHtml = VARIETIES_MAP[currentProduct].map(v => 
+          `<option value="${v}" ${opt.variety === v ? 'selected' : ''}>${v}</option>`
+        ).join('');
+
+        col.innerHTML = `
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <input type="text" id="opt_name_${i}" value="${opt.name}" onchange="updateOptField(${i}, 'name', this.value)" class="bg-transparent font-bold ${theme.text} text-sm focus:outline-none" />
+            <button onclick="saveToHistory(${i})" class="text-[10px] bg-slate-800 text-emerald-300 border border-emerald-600/40 px-2 py-1 rounded-lg">💾 Guardar</button>
+          </div>
+
+          <div class="space-y-2 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 text-xs">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">Fecha</label>
+                <input type="date" value="${opt.date || new Date().toISOString().split('T')[0]}" onchange="updateOptField(${i}, 'date', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-[11px]" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block mb-0.5">Variedad</label>
+                <select onchange="updateOptField(${i}, 'variety', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-[11px]">
+                  ${varietyOptionsHtml}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Proveedor</label>
+              <input type="text" placeholder="Ej. JJ Ríos" value="${opt.provider || ''}" onchange="updateOptField(${i}, 'provider', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-[11px]" />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-[11px] font-bold text-slate-400 uppercase">Costos Operativos ($/kg)</h4>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="text-[10px] text-slate-400 block">Mat. Prima</label>
+                <input type="number" step="0.1" id="in_rawPrice_${i}" value="${opt.rawPrice}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-white font-mono" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block">Maquila</label>
+                <input type="number" step="0.05" id="in_maquila_${i}" value="${opt.maquila}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-white font-mono" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block">Flete</label>
+                <input type="number" step="0.05" id="in_freight_${i}" value="${opt.freight}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-white font-mono" />
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-400 block">Envasado (/bulto)</label>
+                <input type="number" step="0.5" id="in_packBag_${i}" value="${opt.packBag}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded p-1.5 text-white font-mono" />
+              </div>
+            </div>
+          </div>
+
+          <!-- MÓDULO DE SUBPRODUCTOS -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <h4 class="text-[11px] font-bold text-slate-400 uppercase">Merma y Subproductos</h4>
+              <button onclick="addSubproduct(${i})" class="text-[10px] bg-emerald-950 hover:bg-emerald-900 border border-emerald-600/40 text-emerald-300 font-bold px-2 py-0.5 rounded-lg">+ Agregar</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 items-center bg-slate-950/50 p-2 rounded-lg border border-slate-800 text-xs">
+              <span class="text-[11px] text-red-400">Merma Inrecuperable (%)</span>
+              <input type="number" step="0.1" id="in_mermaPct_${i}" value="${opt.mermaPct}" oninput="recalculate()" class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-right text-white font-mono" />
+            </div>
+
+            <div id="subContainer_${i}" class="space-y-1.5"></div>
+          </div>
+
+          <button onclick="transferToQuote(${i})" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow transition-all flex items-center justify-center space-x-1">
+            <span>🚀 Seleccionar esta Opción para Cotizar</span>
+          </button>
+        `;
+
+        renderSubproductsForOpt(i);
+      }
+    }
+
+    function renderSubproductsForOpt(optIdx) {
+      const container = document.getElementById(`subContainer_${optIdx}`);
+      if (!container) return;
+      container.innerHTML = '';
+
+      optionsData[optIdx].subproducts.forEach((sub, subIdx) => {
+        const div = document.createElement('div');
+        div.className = 'bg-slate-950/60 p-2 rounded-lg border border-slate-800 space-y-1';
+        div.innerHTML = `
+          <div class="flex justify-between items-center text-xs">
+            <input type="text" value="${sub.name}" onchange="updateSubName(${optIdx}, ${subIdx}, this.value)" class="bg-transparent text-emerald-300 font-medium border-b border-transparent focus:border-emerald-500 w-3/4 text-[11px]" />
+            <button onclick="removeSubproduct(${optIdx}, ${subIdx})" class="text-red-400 hover:text-red-300 font-bold text-[10px]">✕</button>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="flex items-center space-x-1">
+              <span class="text-[9px] text-slate-400">% Salida:</span>
+              <input type="number" step="0.1" value="${sub.pct}" oninput="updateSubPct(${optIdx}, ${subIdx}, this.value)" class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-right text-white font-mono text-[11px]" />
+            </div>
+            <div class="flex items-center space-x-1">
+              <span class="text-[9px] text-slate-400">$/kg:</span>
+              <input type="number" step="0.5" value="${sub.price}" oninput="updateSubPrice(${optIdx}, ${subIdx}, this.value)" class="w-full bg-slate-950 border border-slate-700 rounded p-1 text-right text-amber-300 font-mono text-[11px]" />
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addSubproduct(optIdx) {
+      optionsData[optIdx].subproducts.push({
+        id: 'sub_' + Date.now(),
+        name: 'Nuevo Subproducto',
+        pct: 1.0,
+        price: 3.00
+      });
+      saveState();
+      renderSubproductsForOpt(optIdx);
+      recalculate();
+    }
+
+    function removeSubproduct(optIdx, subIdx) {
+      optionsData[optIdx].subproducts.splice(subIdx, 1);
+      saveState();
+      renderSubproductsForOpt(optIdx);
+      recalculate();
+    }
+
+    function updateOptField(optIdx, field, val) { optionsData[optIdx][field] = val; saveState(); }
+    function updateSubName(optIdx, subIdx, val) { optionsData[optIdx].subproducts[subIdx].name = val; saveState(); }
+    function updateSubPct(optIdx, subIdx, val) { optionsData[optIdx].subproducts[subIdx].pct = parseFloat(val) || 0; saveState(); recalculate(); }
+    function updateSubPrice(optIdx, subIdx, val) { optionsData[optIdx].subproducts[subIdx].price = parseFloat(val) || 0; saveState(); recalculate(); }
+    function saveState() { localStorage.setItem(STORAGE_KEY_MULTI, JSON.stringify(optionsData)); }
+
+    function recalculate() {
+      const keys = ['A', 'B', 'C'];
+
+      for (let i = 0; i < 3; i++) {
+        const rawPrice = parseFloat(document.getElementById(`in_rawPrice_${i}`).value) || 0;
+        const maquila = parseFloat(document.getElementById(`in_maquila_${i}`).value) || 0;
+        const freight = parseFloat(document.getElementById(`in_freight_${i}`).value) || 0;
+        const packBag = parseFloat(document.getElementById(`in_packBag_${i}`).value) || 0;
+        const mermaPct = parseFloat(document.getElementById(`in_mermaPct_${i}`).value) || 0;
+
+        optionsData[i].rawPrice = rawPrice;
+        optionsData[i].maquila = maquila;
+        optionsData[i].freight = freight;
+        optionsData[i].packBag = packBag;
+        optionsData[i].mermaPct = mermaPct;
+
+        const batchKg = 1000; // Base de cálculo por tonelada
+        let totalSubPct = mermaPct;
+        let totalRecoveryPerTon = 0;
+
+        optionsData[i].subproducts.forEach(sub => {
+          totalSubPct += sub.pct;
+          totalRecoveryPerTon += (batchKg * (sub.pct / 100)) * sub.price;
+        });
+
+        const cleanYieldPct = Math.max(0, 100 - totalSubPct);
+        const cleanKg = batchKg * (cleanYieldPct / 100);
+
+        const costRaw = batchKg * rawPrice;
+        const costMaquila = batchKg * maquila;
+        const costFreight = batchKg * freight;
+        const packPerKg = packBag / 25;
+        const totalPackaging = cleanKg * packPerKg;
+
+        const grossCost = costRaw + costMaquila + costFreight + totalPackaging;
+        const netCost = grossCost - totalRecoveryPerTon;
+        const costPerKgClean = cleanKg > 0 ? (netCost / cleanKg) : 0;
+        const costPerBag25kg = costPerKgClean * 25;
+
+        optionsData[i].calculatedCostKg = costPerKgClean;
+        optionsData[i].calculatedCostBag = costPerBag25kg;
+
+        const key = keys[i];
+        document.getElementById(`summary_raw_${key}`).innerHTML = `$${rawPrice.toFixed(2)} <span class="text-[10px] text-slate-400">(${cleanYieldPct.toFixed(1)}% rend.)</span>`;
+        document.getElementById(`summary_rec_${key}`).innerHTML = `+$${totalRecoveryPerTon.toFixed(2)}/Ton`;
+        document.getElementById(`summary_costKg_${key}`).innerHTML = `$${costPerKgClean.toFixed(2)} <span class="text-slate-300 text-xs">($${costPerBag25kg.toFixed(2)})</span>`;
+      }
+
+      saveState();
+    }
+
+    // PASO 2: TRANSFERIR LA OPCIÓN SELECCIONADA AL COTIZADOR COMERCIAL
+    function transferToQuote(optIdx) {
+      const opt = optionsData[optIdx];
       
-      const subTons = parseFloat(document.getElementById(`subTons_${key}`).value) || 0;
-      const subPrice = parseFloat(document.getElementById(`subPrice_${key}`).value) || 0;
-      const subproductTotalTon = subTons * subPrice / 10;
+      document.getElementById('commVariety').value = `${opt.productType.toUpperCase()} - ${opt.variety}`;
+      document.getElementById('commProvider').value = opt.provider || 'S/E';
+      document.getElementById('commCostKg').value = opt.calculatedCostKg ? opt.calculatedCostKg.toFixed(2) : '0.00';
+      
+      // Sugerir precio público con un 12% de margen por defecto
+      const suggestedPrice = (opt.calculatedCostKg || 0) * 1.12;
+      document.getElementById('commPriceKg').value = suggestedPrice.toFixed(2);
 
-      const rawAdjusted = yieldPct > 0 ? (rawPrice / yieldPct) : rawPrice;
-      const netCostTon = rawAdjusted + processCost - subproductTotalTon;
-      const netCostKg = netCostTon / 1000;
+      updateCalculations();
 
-      const marginPct = (parseFloat(document.getElementById(`marginPct_${key}`).value) || 0) / 100;
-      const suggestedPriceKg = netCostKg * (1 + marginPct);
+      // Scroll suave hacia la sección comercial
+      document.getElementById('commercialSection').scrollIntoView({ behavior: 'smooth' });
+    }
 
-      return {
-        provider: document.getElementById(`prov_${key}`).value || `Opción ${key}`,
-        grain: document.getElementById(`grain_${key}`).value,
-        variety: document.getElementById(`variety_${key}`).value,
-        rawPrice, yieldPct, processCost, subproductTotalTon,
-        netCostTon, netCostKg, suggestedPriceKg
-      };
+    function handleQuoteTypeChange() {
+      const type = document.getElementById('quoteType').value;
+      const tag = document.getElementById('pdfTagType');
+      const lblPrice = document.getElementById('lblCommPrice');
+      const mermaBox = document.getElementById('maquilaMermaBox');
+
+      if (type === 'maquila') {
+        tag.innerText = 'Cotización Servicio de Maquila';
+        tag.className = 'inline-block bg-blue-100 text-blue-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-md mb-1';
+        lblPrice.innerText = 'Tarifa Maquila ($/kg)';
+        mermaBox.classList.remove('hidden');
+      } else {
+        tag.innerText = 'Cotización Venta de Grano';
+        tag.className = 'inline-block bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-md mb-1';
+        lblPrice.innerText = 'Precio Venta Cliente ($/kg)';
+        mermaBox.classList.add('hidden');
+      }
+
+      updateCalculations();
     }
 
     function updateCalculations() {
-      optionKeys.forEach(key => {
-        const res = getOptionCalculations(key);
-        document.getElementById(`subTotal_${key}`).innerText = `$${res.subproductTotalTon.toFixed(2)} /Ton`;
-        document.getElementById(`netCostKg_${key}`).innerText = `$${res.netCostKg.toFixed(2)} / kg`;
-        document.getElementById(`netCostTon_${key}`).innerText = `$${res.netCostTon.toFixed(2)} / Ton`;
-        document.getElementById(`suggestedPrice_${key}`).innerText = `$${res.suggestedPriceKg.toFixed(2)}`;
-      });
-
-      const activeRes = getOptionCalculations(selectedKey);
-      const commPriceInput = document.getElementById('commPriceKg');
-      
-      if (!commPriceInput.dataset.userEdited) {
-        commPriceInput.value = activeRes.suggestedPriceKg.toFixed(2);
-      }
-
-      const commPriceKg = parseFloat(commPriceInput.value) || activeRes.suggestedPriceKg;
-      const tons = parseFloat(document.getElementById('commTons').value) || 25;
-      
-      const profitPerKg = commPriceKg - activeRes.netCostKg;
-      const totalProfit = profitPerKg * tons * 1000;
-      const profitPct = activeRes.netCostKg > 0 ? (profitPerKg / activeRes.netCostKg) * 100 : 0;
-
-      const subtotal = tons * 1000 * commPriceKg;
-      const totalQuote = subtotal * 1.16;
-
-      // ACTUALIZAR PANEL DE RESUMEN SUPERIOR (KPIs)
-      document.getElementById('kpiTotalQuote').innerText = `$${totalQuote.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-      document.getElementById('kpiTotalTons').innerText = `${tons} Toneladas`;
-      document.getElementById('kpiPackaging').innerText = document.getElementById('commPackaging').value;
-      document.getElementById('kpiTotalProfit').innerText = `${totalProfit >= 0 ? '+' : ''}$${totalProfit.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-      document.getElementById('kpiProfitPct').innerText = `${profitPct.toFixed(1)}% Margen Real`;
-      document.getElementById('kpiActiveOpt').innerText = `Opción ${selectedKey} - ${activeRes.provider}`;
-      document.getElementById('kpiActiveGrain').innerText = `${activeRes.grain} (${activeRes.variety})`;
-
-      document.getElementById('commProfitTotal').innerText = `${totalProfit >= 0 ? '+' : ''}$${totalProfit.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-      document.getElementById('commProfitPct').innerText = `${profitPct.toFixed(1)}%`;
-
-      updatePDFPreview(activeRes);
-    }
-
-    function selectOptionForQuote(key) {
-      selectedKey = key;
-      const input = document.getElementById('commPriceKg');
-      delete input.dataset.userEdited;
-      
-      optionKeys.forEach(k => {
-        document.getElementById(`card_opt_${k}`).classList.remove('border-emerald-500', 'ring-2', 'ring-emerald-500/50');
-      });
-      document.getElementById(`card_opt_${key}`).classList.add('border-emerald-500', 'ring-2', 'ring-emerald-500/50');
-
-      updateCalculations();
-      document.getElementById('quoteSection').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    document.getElementById('commPriceKg').addEventListener('input', function() {
-      this.dataset.userEdited = "true";
-      updateCalculations();
-    });
-
-    function updatePDFPreview(optData) {
-      const mode = document.getElementById('quoteMode').value;
-      const client = document.getElementById('clientName').value;
-      const contact = document.getElementById('clientContact').value;
-      const tons = parseFloat(document.getElementById('commTons').value) || 25;
-      const packaging = document.getElementById('commPackaging').value;
+      const costKg = parseFloat(document.getElementById('commCostKg').value) || 0;
       const priceKg = parseFloat(document.getElementById('commPriceKg').value) || 0;
+      const tons = parseFloat(document.getElementById('commTons').value) || 0;
+      const type = document.getElementById('quoteType').value;
 
-      document.getElementById('pdfClientName').innerText = client;
-      document.getElementById('pdfClientContact').innerText = contact;
-      document.getElementById('pdfPayment').innerText = document.getElementById('paymentTerms').value;
-      document.getElementById('pdfValidity').innerText = document.getElementById('validityPeriod').value;
-      
-      const subtotal = tons * 1000 * priceKg;
+      const totalKg = tons * 1000;
+      const profitPerKg = priceKg - costKg;
+      const profitPerTon = profitPerKg * 1000;
+
+      document.getElementById('commProfitTon').innerText = `+$${profitPerTon.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
+
+      const subtotal = totalKg * priceKg;
       const iva = subtotal * 0.16;
       const total = subtotal + iva;
 
-      let desc = mode === 'maquila' 
-        ? `Servicio de Maquila, Limpieza y Procesado para ${optData.grain} (${optData.variety})`
-        : `Venta de ${optData.grain} Seleccionado (${optData.variety}) - Origen: ${optData.provider}`;
+      const variety = document.getElementById('commVariety').value || 'Grano General';
+      const packaging = document.getElementById('commPackaging').value;
 
-      document.getElementById('pdfTableBody').innerHTML = `
+      const descText = type === 'maquila' 
+        ? `Servicio de Maquila, Seleccionado y Criba para ${variety} (Merma perm. ${document.getElementById('commMerma').value}%)`
+        : `Venta de Grano ${variety} Calidad Comercial`;
+
+      const tbody = document.getElementById('pdfTableBody');
+      tbody.innerHTML = `
         <tr>
-          <td class="p-2 font-bold">${desc}</td>
-          <td class="p-2 text-center">${packaging}</td>
-          <td class="p-2 text-center">${tons} Ton (${(tons*1000).toLocaleString()} kg)</td>
+          <td class="p-2 font-sans">
+            <span class="font-bold block">${descText}</span>
+            <span class="text-[9px] text-slate-500">Proveedor/Origen: ${document.getElementById('commProvider').value}</span>
+          </td>
+          <td class="p-2 text-center font-sans capitalize">${packaging}</td>
+          <td class="p-2 text-center font-bold">${tons} Ton (${totalKg.toLocaleString()} kg)</td>
           <td class="p-2 text-right">$${priceKg.toFixed(2)}</td>
-          <td class="p-2 text-right font-bold">$${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+          <td class="p-2 text-right font-bold">$${subtotal.toLocaleString('es-MX', {minimumFractionDigits: 2})}</td>
         </tr>
       `;
 
-      document.getElementById('pdfSubtotal').innerText = `$${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-      document.getElementById('pdfIva').innerText = `$${iva.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-      document.getElementById('pdfTotal').innerText = `$${total.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+      document.getElementById('pdfSubtotal').innerText = `$${subtotal.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
+      document.getElementById('pdfIva').innerText = `$${iva.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
+      document.getElementById('pdfTotal').innerText = `$${total.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
+
+      updateDocumentPreview();
     }
 
-    function triggerPrintPDF() {
-      window.print();
+    function updateDocumentPreview() {
+      document.getElementById('pdfClientName').innerText = document.getElementById('clientName').value || 'Cliente General';
+      document.getElementById('pdfClientContact').innerText = document.getElementById('clientContact').value || 'Sin datos de contacto';
+      document.getElementById('pdfPayment').innerText = document.getElementById('paymentTerms').value;
+      document.getElementById('pdfDelivery').innerText = document.getElementById('deliveryLocation').value;
+      document.getElementById('pdfValidity').innerText = document.getElementById('validityPeriod').value;
     }
 
-    function sendWhatsApp() {
-      const client = document.getElementById('clientName').value;
+    function downloadPDF() {
+      const element = document.getElementById('quotePDFTemplate');
+      const folio = document.getElementById('pdfFolio').innerText.replace('Folio: ', '');
+      const opt = {
+        margin:       0.3,
+        filename:     `Cotizacion_Organicos_Milenarios_${folio}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+
+    function sendViaWhatsApp() {
+      const client = document.getElementById('clientName').value || 'Cliente';
       const total = document.getElementById('pdfTotal').innerText;
-      const text = `Hola *${client}*, te comparto la cotización de *Orgánicos Milenarios* por un total de *${total}*. Adjunto la propuesta formal en PDF a continuación.`;
+      const folio = document.getElementById('pdfFolio').innerText;
+      const product = document.getElementById('commVariety').value;
+
+      const text = `Hola *${client}*, te compartimos la cotización *${folio}* de *Orgánicos Milenarios SA de CV*:\n\n` +
+                   `🌾 *Producto/Servicio:* ${product}\n` +
+                   `💰 *Monto Total:* ${total}\n\n` +
+                   `Quedamos a tus órdenes para formalizar el pedido.`;
+
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     }
 
-    // ================= HISTORIAL & IMPORT/EXPORT =================
-    function getHistory() {
-      return JSON.parse(localStorage.getItem('om_quote_history') || '[]');
-    }
-
-    function saveToHistory() {
-      const history = getHistory();
-      const activeRes = getOptionCalculations(selectedKey);
-      const newItem = {
-        id: Date.now(),
-        date: document.getElementById('globalDate').value,
-        client: document.getElementById('clientName').value,
-        product: `${activeRes.grain} - ${activeRes.variety}`,
-        tons: document.getElementById('commTons').value,
-        priceKg: document.getElementById('commPriceKg').value,
-        total: document.getElementById('pdfTotal').innerText,
-        dataState: captureCurrentState()
+    function saveToHistory(optIdx) {
+      const opt = optionsData[optIdx];
+      const record = {
+        id: 'rec_' + Date.now(),
+        date: opt.date || new Date().toISOString().split('T')[0],
+        userAuthor: opt.userAuthor || 'Mario Almeida Torres',
+        productType: currentProduct,
+        variety: opt.variety || 'General',
+        provider: opt.provider || 'Sin Especificar',
+        costKg: opt.calculatedCostKg || 0
       };
-      
-      history.unshift(newItem);
-      localStorage.setItem('om_quote_history', JSON.stringify(history));
-      alert('✅ Cotización guardada en el historial con éxito.');
-      renderHistory();
+
+      historyRecords.unshift(record);
+      localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyRecords));
+      alert(`Guardado en historial: ${record.productType.toUpperCase()} (${record.variety}) - $${record.costKg.toFixed(2)}/kg`);
     }
 
-    function captureCurrentState() {
-      const activeRes = getOptionCalculations(selectedKey);
-      return {
-        grain: activeRes.grain,
-        variety: activeRes.variety,
-        tons: document.getElementById('commTons').value,
-        client: document.getElementById('clientName').value,
-        contact: document.getElementById('clientContact').value,
-        priceKg: document.getElementById('commPriceKg').value
-      };
-    }
-
-    function loadFromHistory(id) {
-      const history = getHistory();
-      const item = history.find(x => x.id === id);
-      if (!item) return;
-
-      document.getElementById(`grain_${selectedKey}`).value = item.dataState.grain || 'Frijol';
-      document.getElementById(`variety_${selectedKey}`).value = item.dataState.variety || '';
-      document.getElementById('commTons').value = item.dataState.tons || 25;
-      document.getElementById('clientName').value = item.dataState.client || '';
-      document.getElementById('clientContact').value = item.dataState.contact || '';
-      document.getElementById('commPriceKg').value = item.dataState.priceKg || '';
-      document.getElementById('commPriceKg').dataset.userEdited = "true";
-
-      toggleModal('historyModal');
-      updateCalculations();
-    }
-
-    function renderHistory() {
-      const history = getHistory();
-      const tbody = document.getElementById('historyTableBody');
-      
-      if (history.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">No hay registros guardados.</td></tr>`;
-        return;
+    function toggleHistoryModal() {
+      const modal = document.getElementById('historyModal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        renderHistoryTable();
       }
+    }
 
-      tbody.innerHTML = history.map(item => `
+    function renderHistoryTable() {
+      const tbody = document.getElementById('historyTableBody');
+      tbody.innerHTML = historyRecords.map(r => `
         <tr>
-          <td class="p-2">${item.date}</td>
-          <td class="p-2 font-bold text-white">${item.client}</td>
-          <td class="p-2 text-emerald-300">${item.product}</td>
-          <td class="p-2">${item.tons} Ton</td>
-          <td class="p-2 text-right">$${item.priceKg}</td>
-          <td class="p-2 text-center">
-            <button onclick="loadFromHistory(${item.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] px-2 py-1 rounded">Reutilizar</button>
-          </td>
+          <td class="p-2">${r.date}</td>
+          <td class="p-2 font-bold text-emerald-400">${r.productType.toUpperCase()} (${r.variety})</td>
+          <td class="p-2">${r.provider}</td>
+          <td class="p-2 text-right font-bold">$${r.costKg.toFixed(2)}</td>
+          <td class="p-2 text-center"><button onclick="alert('Registro del historial')" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded">Ver</button></td>
         </tr>
       `).join('');
-
-      renderChart(history);
     }
 
-    function renderChart(history) {
-      const ctx = document.getElementById('historyChart');
-      if (!ctx) return;
-
-      const labels = history.slice(0, 7).reverse().map(x => x.client);
-      const data = history.slice(0, 7).reverse().map(x => parseFloat(x.priceKg) || 0);
-
-      if (chartInstance) chartInstance.destroy();
-
-      chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Precio de Venta ($/kg)',
-            data: data,
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#94a3b8' } } },
-          scales: {
-            y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
-            x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
-          }
-        }
-      });
-    }
-
-    function exportDataJSON() {
-      const data = getHistory();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `organicos_milenarios_costos_${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
-    }
-
-    function importDataJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (Array.isArray(imported)) {
-            localStorage.setItem('om_quote_history', JSON.stringify(imported));
-            alert('✅ Datos de costos e historial importados correctamente.');
-            renderHistory();
-          }
-        } catch (err) {
-          alert('❌ El archivo no tiene un formato JSON válido.');
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function toggleModal(id) {
-      const el = document.getElementById(id);
-      el.classList.toggle('hidden');
-      if (!el.classList.contains('hidden')) renderHistory();
-    }
-
-    window.onload = function() {
-      selectOptionForQuote('A');
-    };
+    window.addEventListener('DOMContentLoaded', initApp);
   </script>
 </body>
 </html>
