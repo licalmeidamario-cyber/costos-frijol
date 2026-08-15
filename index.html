@@ -975,7 +975,7 @@
       });
     }
 
-    // GRÁFICA SEPARADA POR PRODUCTO O VARIEDAD
+    // GRÁFICA SEPARADA POR PRODUCTO O VARIEDAD CON FECHAS ORDENADAS CRONOLÓGICAMENTE
     function renderPriceChart() {
       const canvas = document.getElementById('priceTrendChart');
       if (!canvas) return;
@@ -984,7 +984,9 @@
       const subtitleEl = document.getElementById('chartSubtitle');
 
       const chronological = historyRecords.slice().reverse();
-      const uniqueDates = [...new Set(chronological.map(r => r.date))];
+      
+      // Extrae fechas únicas y las ordena estrictamente de forma cronológica ascendente
+      const uniqueDates = [...new Set(chronological.map(r => r.date))].sort((a, b) => new Date(a) - new Date(b));
 
       let datasets = [];
 
